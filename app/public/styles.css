@@ -76,7 +76,8 @@ nav a:hover {
 input[type="text"],
 input[type="email"],
 input[type="password"],
-input[type="date"] {
+input[type="date"],
+input[type="tel"] {
     width: 100%;
     max-width: 300px;
     padding: 0.8em;
