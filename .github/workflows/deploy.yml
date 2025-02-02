@@ -1,0 +1,37 @@
+name: Deploy to AWS Elastic Beanstalk
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    name: Deploy Node.js App to Elastic Beanstalk
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Dependencies
+        run: npm install
+
+      - name: Zip application for deployment
+        run: zip -r deploy.zip . -x "node_modules/*" ".git/*"
+
+      - name: Deploy to AWS Elastic Beanstalk
+        uses: einaregilsson/beanstalk-deploy@v21
+        with:
+          aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          application_name: "LeaseIt"  # Change this to your Elastic Beanstalk App Name
+          environment_name: "LeaseIt-env"  # Change this to your Elastic Beanstalk Environment Name
+          region: ${{ secrets.AWS_REGION }}
+          version_label: "leaseit-${{ github.sha }}"
+          deployment_package: "deploy.zip"
