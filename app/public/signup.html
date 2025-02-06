@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <nav>
+        <a href="index.html">Home</a>
+    </nav>
+
+    <div class="center-container">
+        <h2>Sign Up</h2>
+        <input type="email" id="signup-email" placeholder="Enter email address">
+        <input type="text" id="signup-username" placeholder="Create a username">
+        <input type="password" id="signup-password" placeholder="Choose a password">
+        <button onclick="signup()">Sign Up</button>
+
+        <p id="status-message"></p>
+
+        <p>Already have an account? <a href="login.html">Log in instead</a></p>
+    </div>
+
+    <script>
+        async function signup() {
+            const username = document.getElementById("signup-username").value;
+            const email = document.getElementById("signup-email").value;
+            const password = document.getElementById("signup-password").value;
+            const statusMessage = document.getElementById("status-message");
+
+            if (!username || !email || !password) {
+                statusMessage.innerText = "All fields are required.";
+                return;
+            }
+
+            const response = await fetch("/signup", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, email, password })
+            });
+
+            const data = await response.text();
+            statusMessage.innerText = data;
+
+            if (response.ok) {
+                statusMessage.innerText = "Signup successful! Redirecting to login page...";
+                setTimeout(() => {
+                    window.location.href = "login.html";
+                }, 3000);
+            }
+        }
+    </script>
+
+</body>
+</html>

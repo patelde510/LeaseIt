@@ -1,30 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Leasing Website</title>
     <link rel="stylesheet" href="styles.css">
 </head>
-<body>
 
-    <!-- Navigation -->
+<body>
     <nav>
         <ul>
             <li><a href="about.html">About Us</a></li>
             <li><a href="search.html">Search For Lease</a></li>
             <li><a href="post.html">Post Lease</a></li>
-            <li><a href="login.html">Log in/Sign up</a></li>
+            <li id="auth-link"><a href="signup.html">Log In / Sign Up</a></li>
         </ul>
     </nav>
 
-    <!-- Centered Text Section -->
+
     <div class="center-container">
         <div class="text-content">
-            <h1>Welcome to the LeaseIt!</h1>
+            <h1>Welcome to LeaseIt!</h1>
             <p>Your go-to platform for finding and posting leases.</p>
+            <button id="logout-btn" style="display: none;" onclick="logout()">Logout</button> <!-- Hidden by default -->
         </div>
     </div>
 
+    <script>
+        // Check if user is logged in on page load
+        async function checkSession() {
+            try {
+                const response = await fetch("/checkSession");
+                if (response.ok) {
+                    document.getElementById("auth-link").innerHTML =
+                        `<a href="javascript:void(0);" onclick="logout()">Logout</a>`;
+                }
+            } catch (error) {
+                console.log("Not logged in");
+            }
+        }
+
+
+        async function logout() {
+            await fetch("/logout");
+            alert("Logged out successfully!");
+            window.location.reload();
+        }
+
+        checkSession();
+    </script>
+
 </body>
+
 </html>
