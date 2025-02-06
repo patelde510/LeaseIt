@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login / Sign Up</title>
+    <title>Login</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -13,18 +13,44 @@
     </nav>
 
     <div class="center-container">
-        <h2>Username</h2>
-        <input type="text" placeholder="Enter your username">
-        <h2>Password</h2>
-        <input type="password" placeholder="Enter your password">
-        <button>Log in</button>
+        <h2>Log In</h2>
+        <input type="text" id="login-username" placeholder="Enter your username">
+        <input type="password" id="login-password" placeholder="Enter your password">
+        <button onclick="login()">Log in</button>
 
-        <h3>Create an account</h3>
-        <input type="email" placeholder="Enter email address">
-        <input type="text" placeholder="Create a username!">
-        <input type="password" placeholder="Choose a password!">
-        <button>Submit</button>
+        <p id="status-message"></p>
+
+        <p>Don't have an account? <a href="signup.html">Sign up here</a></p>
     </div>
+
+    <script>
+        async function login() {
+            const username = document.getElementById("login-username").value;
+            const password = document.getElementById("login-password").value;
+            const statusMessage = document.getElementById("status-message");
+
+            if (!username || !password) {
+                statusMessage.innerText = "Username and password are required.";
+                return;
+            }
+
+            const response = await fetch("/login", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password })
+            });
+
+            const data = await response.text();
+            statusMessage.innerText = data;
+
+            if (response.ok) {
+                statusMessage.innerText = "Login successful! Redirecting...";
+                setTimeout(() => {
+                    window.location.href = "index.html";
+                }, 3000);
+            }
+        }
+    </script>
 
 </body>
 </html>
