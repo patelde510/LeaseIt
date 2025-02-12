@@ -2,23 +2,20 @@ DROP DATABASE IF EXISTS leaseit;
 CREATE DATABASE leaseit;
 \c leaseit;
 
--- Create Users table
-CREATE TABLE Users (
-    UserID SERIAL PRIMARY KEY,
-    Name VARCHAR(100) NOT NULL,
-    Email VARCHAR(255) UNIQUE NOT NULL,
-    Password VARCHAR(255) NOT NULL,
-    AccountType VARCHAR(20) NOT NULL CHECK (AccountType IN ('Subletter', 'Sublessee')),
-    SessionID UUID DEFAULT gen_random_uuid(),
-    Token VARCHAR(255),
-    Favorites JSONB,
-    SecurityQuestion JSON
+-- Create Customers table
+CREATE TABLE Customers (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash TEXT NOT NULL,
+    session_id TEXT,
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Create SubletListings table
 CREATE TABLE SubletListings (
     ListingID SERIAL PRIMARY KEY,
-    UserID INT NOT NULL REFERENCES Users(UserID) ON DELETE CASCADE,
+    UserID INT NOT NULL REFERENCES Customers(id) ON DELETE CASCADE,
     Title VARCHAR(255) NOT NULL,
     Description TEXT,
     LeaseStartDate DATE NOT NULL,
@@ -42,8 +39,8 @@ CREATE TABLE SubletListings (
 -- Create Reviews table
 CREATE TABLE Reviews (
     ReviewID SERIAL PRIMARY KEY,
-    ReviewerID INT NOT NULL REFERENCES Users(UserID) ON DELETE CASCADE,
-    RevieweeID INT REFERENCES Users(UserID) ON DELETE SET NULL,
+    ReviewerID INT NOT NULL REFERENCES Customers(id) ON DELETE CASCADE,
+    RevieweeID INT REFERENCES Customers(id) ON DELETE SET NULL,
     ListingID INT REFERENCES SubletListings(ListingID) ON DELETE CASCADE,
     Rating INT NOT NULL CHECK (Rating BETWEEN 1 AND 5)
 );
@@ -52,8 +49,8 @@ CREATE TABLE Reviews (
 CREATE TABLE LeaseTransfer (
     LeaseTransferID SERIAL PRIMARY KEY,
     ListingID INT NOT NULL REFERENCES SubletListings(ListingID) ON DELETE CASCADE,
-    SubletterID INT NOT NULL REFERENCES Users(UserID) ON DELETE CASCADE,
-    SublesseeID INT NOT NULL REFERENCES Users(UserID) ON DELETE CASCADE,
+    SubletterID INT NOT NULL REFERENCES Customers(id) ON DELETE CASCADE,
+    SublesseeID INT NOT NULL REFERENCES Customers(id) ON DELETE CASCADE,
     TransferDate DATE NOT NULL
 );
 
