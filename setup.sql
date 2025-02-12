@@ -45,15 +45,6 @@ CREATE TABLE Reviews (
     Rating INT NOT NULL CHECK (Rating BETWEEN 1 AND 5)
 );
 
--- Create LeaseTransfer table
-CREATE TABLE LeaseTransfer (
-    LeaseTransferID SERIAL PRIMARY KEY,
-    ListingID INT NOT NULL REFERENCES SubletListings(ListingID) ON DELETE CASCADE,
-    SubletterID INT NOT NULL REFERENCES Customers(id) ON DELETE CASCADE,
-    SublesseeID INT NOT NULL REFERENCES Customers(id) ON DELETE CASCADE,
-    TransferDate DATE NOT NULL
-);
-
 -- Create Amenities table
 CREATE TABLE Amenities (
     AmenityID SERIAL PRIMARY KEY,
