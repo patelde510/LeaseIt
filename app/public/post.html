@@ -43,18 +43,19 @@
             <!-- Rent Price -->
             <h3>Rent Price</h3>
             <label for="rent-price">Rent per month ($):</label>
-            <input type="number" id="rent-price" min="0" required><br><br>
+            <input type="number" id="rent-price" required><br><br>
 
             <!-- Property Details -->
             <h3>Property Details</h3>
             <label for="bedrooms">Number of Bedrooms:</label>
-            <input type="number" id="bedrooms" min="1" required><br><br>
+            <input type="number" id="bedrooms" required><br><br>
 
             <label for="bathrooms">Number of Bathrooms:</label>
-            <input type="number" id="bathrooms" min="1" required><br><br>
+            <input type="number" id="bathrooms" required><br><br>
 
             <label for="property-type">Property Type:</label>
             <select id="property-type" required>
+                <option value="" disabled selected>Select</option>
                 <option value="apartment">Apartment</option>
                 <option value="house">House</option>
                 <option value="student-housing">Student Housing</option>
@@ -63,26 +64,23 @@
 
             <label for="shared-space">Shared Space?</label>
             <select id="shared-space" required>
+                <option value="" disabled selected>Select</option>
                 <option value="yes">Yes</option>
                 <option value="no">No</option>
             </select><br><br>
 
             <label for="furnished">Furnished?</label>
             <select id="furnished" required>
+                <option value="" disabled selected>Select</option>
                 <option value="yes">Yes</option>
                 <option value="no">No</option>
             </select><br><br>
 
             <label for="bathroom-type">Private or Shared Bathroom?</label>
             <select id="bathroom-type" required>
+                <option value="" disabled selected>Select</option>
                 <option value="private">Private</option>
                 <option value="shared">Shared</option>
-            </select><br><br>
-
-            <label for="bathroom-type">Shared Living Space?</label>
-            <select id="bathroom-type" required>
-                <option value="yes">Yes</option>
-                <option value="no">No</option>
             </select><br><br>
 
             <!-- Amenities -->
@@ -97,11 +95,11 @@
             <label><input type="checkbox" id="free-parking"> Free Parking</label>
             <label><input type="checkbox" id="paid-parking"> Paid Parking</label>
             <label><input type="checkbox" id="remote-lock"> Remote Lock</label>
-            <label><input type="checkbox" id="handicapped-access"> Handicapped Access</label><br><br>
+            <label><input type="checkbox" id="handicapped-access"> Handicapped Access</label>
 
-            <!-- Additional Comments Section -->
+            <!-- Additional Comments -->
             <h3>Additional Comments</h3>
-            <textarea id="comments" rows="4" cols="50" placeholder="Enter any extra details here..."></textarea><br><br>
+            <textarea id="comments" rows="4" cols="50" placeholder="Enter extra details..."></textarea>
 
             <!-- Contact Information -->
             <h3>Contact Information</h3>
@@ -117,12 +115,96 @@
     </div>
 
     <script>
+        function validateInput(input, condition) {
+            if (condition) {
+                input.style.border = "2px solid green";
+            } else {
+                input.style.border = "2px solid red";
+            }
+        }
+
+        // Address validation
+        document.getElementById("address").addEventListener("input", function () {
+            validateInput(this, this.value.length >= 5);
+        });
+
+        // City & State validation (only letters)
+        document.getElementById("city").addEventListener("input", function () {
+            validateInput(this, /^[A-Za-z\s]+$/.test(this.value));
+        });
+
+        document.getElementById("state").addEventListener("input", function () {
+            validateInput(this, /^[A-Za-z\s]+$/.test(this.value));
+        });
+
+        // Zip code validation (must be exactly 5 numbers)
+        document.getElementById("zip").addEventListener("input", function () {
+            validateInput(this, /^\d{5}$/.test(this.value));
+        });
+
+        // Date validation (Start date must be before end date)
+        function validateDates() {
+            const startDateInput = document.getElementById("start-date");
+            const endDateInput = document.getElementById("end-date");
+
+            const startDate = new Date(startDateInput.value);
+            const endDate = new Date(endDateInput.value);
+
+            if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+                if (startDate <= endDate) {
+                    validateInput(startDateInput, true);
+                    validateInput(endDateInput, true);
+                } else {
+                    validateInput(startDateInput, false);
+                    validateInput(endDateInput, false);
+                }
+            } else {
+                validateInput(startDateInput, !isNaN(startDate.getTime()));
+                validateInput(endDateInput, !isNaN(endDate.getTime()));
+            }
+        }
+
+        document.getElementById("start-date").addEventListener("input", validateDates);
+        document.getElementById("end-date").addEventListener("input", validateDates);
+
+        // Property details validation
+        document.getElementById("rent-price").addEventListener("input", function () {
+            validateInput(this, this.value >= 0);
+        });
+
+        document.getElementById("bedrooms").addEventListener("input", function () {
+            validateInput(this, this.value > 0);
+        });
+
+        document.getElementById("bathrooms").addEventListener("input", function () {
+            validateInput(this, this.value > 0);
+        });
+
+        // Phone number validation (format: 123-456-7890)
+        document.getElementById("phone").addEventListener("input", function () {
+            validateInput(this, /^\d{3}-\d{3}-\d{4}$/.test(this.value));
+        });
+
+        // Email validation (must contain "@" and ".")
+        document.getElementById("email").addEventListener("input", function () {
+            validateInput(this, /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.value));
+        });
+
+        // Prevent form submission if fields are invalid
         document.getElementById("lease-form").addEventListener("submit", function (event) {
-            event.preventDefault();
+            const inputs = document.querySelectorAll("input, select");
+            let allValid = true;
 
-            alert("Your lease has been submitted!");
+            inputs.forEach(input => {
+                if (input.style.border === "2px solid red") {
+                    allValid = false;
+                }
+            });
 
-            // Future: Send data to the backend when implemented
+            if (!allValid) {
+                event.preventDefault();
+                alert("Please correct invalid fields before submitting.");
+            }
         });
     </script>
 
