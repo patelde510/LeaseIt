@@ -9,7 +9,13 @@
 <body>
 
     <nav>
-        <a href="index.html">Home</a>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="search.html">Search For Lease</a></li>
+            <li><a href="post.html">Post Lease</a></li>
+            <li id="auth-link"><a href="signup.html">Log In / Sign Up</a></li>
+        </ul>
     </nav>
 
     <div class="center-container">
@@ -49,7 +55,7 @@
                 statusMessage.innerText = "Signup successful! Redirecting to login page...";
                 setTimeout(() => {
                     window.location.href = "login.html";
-                }, 3000);
+                }, 1000);
             }
         }
     </script>

@@ -50,7 +50,7 @@ nav a:hover {
     text-align: center;
     width: 100%;
     max-width: 600px;
-    margin-top: 2em; /* Moves the content closer to the top */
+    margin-top: 2em;
 }
 
 .text-content {
@@ -77,13 +77,34 @@ input[type="text"],
 input[type="email"],
 input[type="password"],
 input[type="date"],
-input[type="tel"] {
+input[type="tel"],
+input[type="number"],
+select[id="property-type"],
+select[id="shared-space"],
+select[id="furnished"],
+select[id="bathroom-type"]{
     width: 100%;
     max-width: 300px;
     padding: 0.8em;
     margin: 0.5em 0;
     border: 1px solid #ccc;
     border-radius: 4px;
+}
+.amenities-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+}
+
+.amenity {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.amenity input[type="checkbox"] {
+    margin-right: 5px;
 }
 
 button {
@@ -97,14 +118,13 @@ button {
     font-size: 1em;
     cursor: pointer;
     margin-top: 0.5em;
-    margin-bottom: 1.5em; /* Added margin to create space */
+    margin-bottom: 1.5em;
 }
 
 button:hover {
     background-color: #005bb5;
 }
 
-/* Page-Specific Headings */
 h1 {
     font-size: 2em;
     font-weight: bold;
@@ -114,7 +134,7 @@ h1 {
 h3 {
     font-size: 1.5em;
     font-weight: bold;
-    margin-top: 1.5em; /* Added margin to create space */
+    margin-top: 1.5em;
     margin-bottom: 0.5em;
 }
 
