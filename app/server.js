@@ -16,9 +16,9 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT || 5432,
   // USE BELOW TO TEST FOR PRODUCTION ONLY
-  // ssl: {
-  //   rejectUnauthorized: false
-  // }
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 app.use(express.static(path.join(__dirname, "public")));
