@@ -9,7 +9,13 @@
 <body>
 
     <nav>
-        <a href="index.html">Home</a>
+        <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="about.html">About Us</a></li>
+            <li><a href="search.html">Search For Lease</a></li>
+            <li><a href="post.html">Post Lease</a></li>
+            <li id="auth-link"><a href="signup.html">Log In / Sign Up</a></li>
+        </ul>
     </nav>
 
     <div class="center-container">
@@ -18,5 +24,28 @@
         <img src="images/drexel-logo.jpg" alt="Drexel University Logo" width="500" height="400">
     </div>
 
+    <script>
+        // Check if user is logged in on page load
+        async function checkSession() {
+            try {
+                const response = await fetch("/checkSession");
+                if (response.ok) {
+                    document.getElementById("auth-link").innerHTML =
+                        `<a href="javascript:void(0);" onclick="logout()">Logout</a>`;
+                }
+            } catch (error) {
+                console.log("Not logged in");
+            }
+        }
+
+
+        async function logout() {
+            await fetch("/logout");
+            alert("Logged out successfully!");
+            window.location.reload();
+        }
+
+        checkSession();
+    </script>
 </body>
 </html>

@@ -9,16 +9,16 @@ const { v4: uuidv4 } = require("uuid");
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-// PostgreSQL Database Connection
 const pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
   database: process.env.DB_NAME,
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT || 5432,
-  ssl: {
-    rejectUnauthorized: false
-}
+  // USE BELOW TO TEST FOR PRODUCTION ONLY
+  // ssl: {
+  //   rejectUnauthorized: false
+  // }
 });
 
 app.use(express.static(path.join(__dirname, "public")));
@@ -31,6 +31,29 @@ const cookieOptions = {
   secure: false,
   sameSite: "strict",
 };
+
+// Middleware to verify session and retrieve user information
+async function verifySession(req, res, next) {
+  const sessionId = req.cookies.session_id;
+  if (!sessionId) {
+    return res.status(401).send("Not logged in.");
+  }
+
+  try {
+    const result = await pool.query("SELECT user_id FROM users WHERE session_id = $1", [sessionId]);
+    const user = result.rows[0];
+
+    if (user) {
+      req.user = user;
+      next();
+    } else {
+      return res.status(401).send("Session expired. Please log in again.");
+    }
+  } catch (error) {
+    console.error("Error verifying session:", error);
+    res.status(500).send("Session verification failed.");
+  }
+}
 
 // Register new user
 app.post("/signup", async (req, res) => {
@@ -45,14 +68,14 @@ app.post("/signup", async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Check if username already exists
-    const existingUser = await pool.query("SELECT * FROM customers WHERE username = $1", [username]);
+    const existingUser = await pool.query("SELECT * FROM users WHERE username = $1", [username]);
     if (existingUser.rows.length > 0) {
       return res.status(400).send("Username is already taken.");
     }
 
     // Insert user into the database
     await pool.query(
-      "INSERT INTO customers (username, email, password_hash) VALUES ($1, $2, $3)",
+      "INSERT INTO users (username, email, password_hash) VALUES ($1, $2, $3)",
       [username, email, hashedPassword]
     );
 
@@ -73,7 +96,7 @@ app.post("/login", async (req, res) => {
 
   try {
     // Check if the user exists
-    const result = await pool.query("SELECT * FROM customers WHERE username = $1", [username]);
+    const result = await pool.query("SELECT * FROM users WHERE username = $1", [username]);
     const user = result.rows[0];
 
     if (!user) {
@@ -91,7 +114,7 @@ app.post("/login", async (req, res) => {
     res.cookie("session_id", sessionId, cookieOptions);
 
     // Store session ID in database
-    await pool.query("UPDATE customers SET session_id = $1 WHERE username = $2", [sessionId, username]);
+    await pool.query("UPDATE users SET session_id = $1 WHERE username = $2", [sessionId, username]);
 
     res.send("Login successful!");
   } catch (error) {
@@ -114,7 +137,7 @@ app.get("/checkSession", async (req, res) => {
   }
 
   try {
-    const result = await pool.query("SELECT username FROM customers WHERE session_id = $1", [sessionId]);
+    const result = await pool.query("SELECT username FROM users WHERE session_id = $1", [sessionId]);
     const user = result.rows[0];
 
     if (user) {
@@ -125,6 +148,49 @@ app.get("/checkSession", async (req, res) => {
   } catch (error) {
     console.error("Error checking session:", error);
     res.status(500).send("Session check failed.");
+  }
+});
+
+// *Post Lease API*
+app.post("/post-lease", verifySession, async (req, res) => {
+  try {
+    const user_id = req.user.user_id;
+    const {
+      title, description, price, start_date, end_date, property_type,
+      shared_space, furnished, bathroom_type, bedrooms, bathrooms,
+      address, city, state, zip, phone, email, amenities
+    } = req.body;
+
+    if (!title || !price || !start_date || !end_date || !property_type || 
+        !bedrooms || !bathrooms || !address || !city || !state || !zip || !phone || !email) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const leaseResult = await pool.query(`
+      INSERT INTO leases (user_id, title, description, price, start_date, end_date, 
+          property_type, shared_space, furnished, bathroom_type, bedrooms, bathrooms, 
+          status)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'available')
+      RETURNING lease_id
+    `, [user_id, title, description, price, start_date, end_date, property_type,
+        shared_space, furnished, bathroom_type, bedrooms, bathrooms]);
+
+    const lease_id = leaseResult.rows[0].lease_id;
+
+    await pool.query(`
+      INSERT INTO addresses (lease_id, street, city, state, zip_code)
+      VALUES ($1, $2, $3, $4, $5)
+    `, [lease_id, address, city, state, zip]);
+
+    if (amenities && amenities.length > 0) {
+      const amenityValues = amenities.map(amenity => `(${lease_id}, '${amenity}')`).join(",");
+      await pool.query(`INSERT INTO amenities (lease_id, amenity) VALUES ${amenityValues}`);
+    }
+
+    res.status(201).json({ message: "Lease posted successfully!", lease_id });
+  } catch (err) {
+    console.error("Error inserting lease:", err);
+    res.status(500).json({ error: "Failed to post lease" });
   }
 });
 
