@@ -248,7 +248,7 @@
                 };
 
                 try {
-                    const response = await fetch("http://localhost:3000/post-lease", {
+                    const response = await fetch("/post-lease", {
                         method: "POST",
                         headers: { "Content-Type": "application/json" },
                         body: JSON.stringify(leaseData)
@@ -261,7 +261,7 @@
                     }
                 } catch (error) {
                     console.error("Error posting lease:", error);
-                    alert("An error occurred while posting the lease. Please try again.");
+                    alert("An error occurred while posting the lease. Check console for details.");
                 }
             }
         });
@@ -278,7 +278,6 @@
                 console.log("Not logged in");
             }
         }
-
 
         async function logout() {
             await fetch("/logout");

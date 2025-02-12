@@ -79,7 +79,7 @@ app.post("/signup", async (req, res) => {
       [username, email, hashedPassword]
     );
 
-    res.status(201).send("Signup successful! Please log in.");
+    res.status(200).send("Signup successful! Please log in.");
   } catch (error) {
     console.error("Error signing up:", error);
     res.status(500).send("Error signing up.");
@@ -100,13 +100,13 @@ app.post("/login", async (req, res) => {
     const user = result.rows[0];
 
     if (!user) {
-      return res.status(401).send("Invalid username or password.");
+      return res.status(400).send("Invalid username or password.");
     }
 
     // Compare hashed passwords
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
-      return res.status(401).send("Invalid username or password.");
+      return res.status(400).send("Invalid username or password.");
     }
 
     // Generate a session ID
