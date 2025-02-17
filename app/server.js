@@ -9,6 +9,7 @@ const { v4: uuidv4 } = require("uuid");
 const app = express();
 const PORT = process.env.PORT || 8000;
 
+
 const pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
@@ -16,9 +17,9 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT || 5432,
   // COMMENT OUT THE PART BELOW WHEN USING A LOCAL DATABASE
-  ssl: {
-    rejectUnauthorized: false
-  }
+  //ssl: {
+  //  rejectUnauthorized: false
+  //}
 });
 
 app.use(express.static(path.join(__dirname, "public")));

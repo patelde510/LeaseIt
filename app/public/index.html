@@ -4,32 +4,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Leasing Website</title>
+    <title>Lease-It!</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 
 <body>
-    <nav>
-        <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="about.html">About Us</a></li>
-            <li><a href="search.html">Search For Lease</a></li>
-            <li><a href="post.html">Post Lease</a></li>
-            <li id="auth-link"><a href="signup.html">Log In / Sign Up</a></li>
-        </ul>
-    </nav>
+    <header>
+        <img src="images/leaseit.png" alt="Lease-It! Logo" class="logo">
+        <nav>
+            <ul>
+                <li><a href="about.html">About Us</a></li>
+                <li><a href="search.html">Search For Lease</a></li>
+                <li><a href="post.html">Post Lease</a></li>
+                <li id="auth-link"><a href="signup.html">Log In</a></li>
+            </ul>
+        </nav>
+    </header>
 
-
-    <div class="center-container">
-        <div class="text-content">
-            <h1>Welcome to LeaseIt!</h1>
+    <main class="hero-section">
+        <div class="overlay">
+            <h1>Welcome to Lease-It!</h1>
             <p>Your go-to platform for finding and posting leases.</p>
-            <button id="logout-btn" style="display: none;" onclick="logout()">Logout</button> <!-- Hidden by default -->
         </div>
-    </div>
+    </main>
+
+    <footer>
+        <p>Contact Us | Terms | Social Links</p>
+    </footer>
 
     <script>
-        // Check if user is logged in on page load
         async function checkSession() {
             try {
                 const response = await fetch("/checkSession");
@@ -41,7 +44,6 @@
                 console.log("Not logged in");
             }
         }
-
 
         async function logout() {
             await fetch("/logout");
