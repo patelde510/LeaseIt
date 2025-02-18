@@ -35,6 +35,17 @@ const upload = multer({
   limits: { fileSize: 10 * 1024 * 1024 } // 10 MB limit
 });
 
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID_S3,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY_S3,
+  region: process.env.AWS_REGION
+});
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 } // 10 MB limit
+});
+
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
