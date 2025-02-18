@@ -11,6 +11,7 @@ const AWS = require("aws-sdk");
 const app = express();
 const PORT = process.env.PORT || 8000;
 
+
 const pool = new Pool({
   user: process.env.DB_USER,
   host: process.env.DB_HOST,
@@ -18,9 +19,20 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT || 5432,
   // COMMENT OUT THE PART BELOW WHEN USING A LOCAL DATABASE
-  ssl: {
-    rejectUnauthorized: false
-  }
+  //ssl: {
+  //  rejectUnauthorized: false
+  //}
+});
+
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID_S3,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY_S3,
+  region: process.env.AWS_REGION
+});
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 } // 10 MB limit
 });
 
 const s3 = new AWS.S3({
