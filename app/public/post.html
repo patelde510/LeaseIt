@@ -109,6 +109,11 @@
                 <label class="amenity"><input type="checkbox" id="remote-lock"> Remote Lock</label>
                 <label class="amenity"><input type="checkbox" id="handicapped-access"> Handicapped Access</label>
             </div><br>
+
+            <!-- Image Upload -->
+            <h4>Upload Images</h4><br>
+            <input type="file" id="images" name="images" accept="image/*" multiple><br><br>
+
             <!-- Additional Comments -->
             <h4>Additional Comments</h4><br>
             <textarea id="comments" rows="4" cols="50" placeholder="Enter extra details..."></textarea><br><br>
@@ -247,11 +252,18 @@
                     amenities: amenities
                 };
 
+                const formData = new FormData();
+                formData.append("leaseData", JSON.stringify(leaseData));
+
+                const imageFiles = document.getElementById("images").files;
+                for (let i = 0; i < imageFiles.length; i++) {
+                    formData.append("images", imageFiles[i]);
+                }
+
                 try {
                     const response = await fetch("/post-lease", {
                         method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify(leaseData)
+                        body: formData
                     });
 
                     const data = await response.json();
