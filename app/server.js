@@ -5,6 +5,8 @@ const bcrypt = require("bcrypt");
 const { Pool } = require("pg");
 const cookieParser = require("cookie-parser");
 const { v4: uuidv4 } = require("uuid");
+const multer = require("multer");
+const AWS = require("aws-sdk");
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -20,6 +22,17 @@ const pool = new Pool({
   //ssl: {
   //  rejectUnauthorized: false
   //}
+});
+
+const s3 = new AWS.S3({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID_S3,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY_S3,
+  region: process.env.AWS_REGION
+});
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 } // 10 MB limit
 });
 
 app.use(express.static(path.join(__dirname, "public")));
@@ -153,14 +166,16 @@ app.get("/checkSession", async (req, res) => {
 });
 
 // *Post Lease API*
-app.post("/post-lease", verifySession, async (req, res) => {
+app.post("/post-lease", verifySession, upload.array("images", 10), async (req, res) => {
   try {
     const user_id = req.user.user_id;
+    const leaseData = JSON.parse(req.body.leaseData);
+
     const {
       title, description, price, start_date, end_date, property_type,
       shared_space, furnished, bathroom_type, bedrooms, bathrooms,
       address, city, state, zip, phone, email, amenities
-    } = req.body;
+    } = leaseData;
 
     if (!title || !price || !start_date || !end_date || !property_type || 
         !bedrooms || !bathrooms || !address || !city || !state || !zip || !phone || !email) {
@@ -186,6 +201,27 @@ app.post("/post-lease", verifySession, async (req, res) => {
     if (amenities && amenities.length > 0) {
       const amenityValues = amenities.map(amenity => `(${lease_id}, '${amenity}')`).join(",");
       await pool.query(`INSERT INTO amenities (lease_id, amenity) VALUES ${amenityValues}`);
+    }
+
+    if (req.files) {
+      const imageLinks = [];
+      for (const file of req.files) {
+        const params = {
+          Bucket: process.env.AWS_S3_BUCKET,
+          Key: `LeaseImages/${lease_id}/${file.originalname}`,
+          Body: file.buffer,
+          ContentType: file.mimetype,
+          ACL: 'public-read'
+        };
+
+        const uploadResult = await s3.upload(params).promise();
+        imageLinks.push(uploadResult.Location);
+      }
+
+      if (imageLinks.length > 0) {
+        const imageValues = imageLinks.map(link => `(${lease_id}, '${link}')`).join(",");
+        await pool.query(`INSERT INTO lease_images (lease_id, image_url) VALUES ${imageValues}`);
+      }
     }
 
     res.status(201).json({ message: "Lease posted successfully!", lease_id });
