@@ -1,24 +1,20 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Login</title>
-    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style/navbar.css">
+    <link rel="stylesheet" href="style/styles.css">
 </head>
+
 <body>
+    <!-- Navbar Placeholder -->
+    <div id="navbar-placeholder"></div>
 
-    <nav>
-        <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="about.html">About Us</a></li>
-            <li><a href="search.html">Search For Lease</a></li>
-            <li><a href="post.html">Post Lease</a></li>
-            <li id="auth-link"><a href="signup.html">Log In / Sign Up</a></li>
-        </ul>
-    </nav>
-
-    <div class="center-container">
+    <div id="login-content-container" class="content-container">
         <h2>Log In</h2>
         <input type="text" id="login-username" placeholder="Enter your username">
         <input type="password" id="login-password" placeholder="Enter your password">
@@ -29,7 +25,40 @@
         <p>Don't have an account? <a href="signup.html">Sign up here</a></p>
     </div>
 
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2025 Your Company. All rights reserved.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        async function loadNavbar() {
+            const response = await fetch("navbar.html");
+            const navbarHTML = await response.text();
+            document.getElementById("navbar-placeholder").innerHTML = navbarHTML;
+        }
+        loadNavbar();
+
+        async function checkSession() {
+            try {
+                const response = await fetch("/checkSession");
+                if (response.ok) {
+                    document.getElementById("auth-link").innerHTML =
+                        `<li><a class="dropdown-item" href="javascript:void(0);" onclick="logout()">Logout</a></li>`;
+                }
+            } catch (error) {
+                console.log("Not logged in");
+            }
+        }
+
+        async function logout() {
+            await fetch("/logout");
+            alert("Logged out successfully!");
+            window.location.reload();
+        }
+        checkSession();
+
+
         async function login() {
             const username = document.getElementById("login-username").value;
             const password = document.getElementById("login-password").value;
@@ -59,4 +88,5 @@
     </script>
 
 </body>
+
 </html>

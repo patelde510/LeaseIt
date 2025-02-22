@@ -1,0 +1,40 @@
+.navbar {
+    background-color: white !important;
+    padding: 5px 0; /* Reduce padding to make navbar thinner */
+    position: relative;
+    z-index: 10;
+}
+.navbar-nav {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+.navbar-brand {
+    margin-left: 20px; /* Move logo to the right */
+}
+.navbar-brand img {
+    width: 55px; /* Increase logo size without affecting navbar height */
+    height: auto;
+}
+.nav-item:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+    border-radius: 5px;
+}
+.nav-link {
+    padding: 8px 12px; /* Reduce padding to decrease height */
+}
+.user-dropdown {
+    margin-left: auto;
+}
+@media (max-width: 992px) {
+    .navbar-nav {
+        flex-direction: column;
+        text-align: center;
+    }
+    .user-dropdown {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+        margin-top: 10px;
+    }
+}
