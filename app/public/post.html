@@ -5,132 +5,198 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Post Lease</title>
-    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style/navbar.css">
+    <link rel="stylesheet" href="style/styles.css">
 </head>
 
 <body>
+    <!-- Navbar Placeholder -->
+    <div id="navbar-placeholder"></div>
 
-    <nav>
-        <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="about.html">About Us</a></li>
-            <li><a href="search.html">Search For Lease</a></li>
-            <li><a href="post.html">Post Lease</a></li>
-            <li id="auth-link"><a href="signup.html">Log In / Sign Up</a></li>
-        </ul>
-    </nav>
-
-    <div class="center-container">
-        <h2>Post Your Lease</h2><br>
-
-        <!-- Lease Title -->
-        <h4>Title Your Listing</h4>
-        <input type="text" id="title" placeholder="Student Housing on 32nd and Spring Garden" required><br>
-
-        <!-- Location Information -->
-        <h4>Location</h4>
-        <label for="address">Street Address:</label>
-        <input type="text" id="address" placeholder="123 Main St" required>
-
-        <label for="city">City:</label>
-        <input type="text" id="city" placeholder="Enter city" required>
-
-        <label for="state">State:</label>
-        <input type="text" id="state" placeholder="Enter state" required>
-
-        <label for="zip">Zip Code:</label>
-        <input type="text" id="zip" placeholder="Enter zip code" required><br>
-
+    <div id="post-content-container" class="content-container">
+        <h4 class="text-center">Property Details</h4>
         <form id="lease-form">
-            <!-- Lease Duration -->
-            <h4>Lease Duration</h4>
-            <label for="start-date">Start Date:</label>
-            <input type="date" id="start-date" required><br>
-
-            <label for="end-date">End Date:</label>
-            <input type="date" id="end-date" required><br><br>
-
-            <!-- Rent Price -->
-            <h4>Rent Price</h4>
-            <label for="rent-price">Rent per month ($):</label>
-            <input type="number" id="rent-price" required><br><br>
-
-            <!-- Property Details -->
-            <h4>Property Details</h4>
-            <label for="bedrooms">Number of Bedrooms:</label>
-            <input type="number" id="bedrooms" required><br><br>
-
-            <label for="bathrooms">Number of Bathrooms:</label>
-            <input type="number" id="bathrooms" required><br><br>
-
-            <label for="property-type">Property Type:</label>
-            <select id="property-type" required>
-                <option value="" disabled selected>Select</option>
-                <option value="apartment">Apartment</option>
-                <option value="house">House</option>
-                <option value="student-housing">Student Housing</option>
-                <option value="other">Other</option>
-            </select><br><br>
-
-            <label for="shared-space">Shared Space?</label>
-            <select id="shared-space" required>
-                <option value="" disabled selected>Select</option>
-                <option value="yes">Yes</option>
-                <option value="no">No</option>
-            </select><br><br>
-
-            <label for="furnished">Furnished?</label>
-            <select id="furnished" required>
-                <option value="" disabled selected>Select</option>
-                <option value="yes">Yes</option>
-                <option value="no">No</option>
-            </select><br><br>
-
-            <label for="bathroom-type">Private or Shared Bathroom?</label>
-            <select id="bathroom-type" required>
-                <option value="" disabled selected>Select</option>
-                <option value="private">Private</option>
-                <option value="shared">Shared</option>
-            </select><br><br>
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <label for="title" class="form-label">Title Your Listing</label>
+                    <input type="text" id="title" class="form-control" placeholder="Student Housing on 32nd and Spring Garden" required>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="address" class="form-label">Street Address</label>
+                    <input type="text" id="address" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="city" class="form-label">City</label>
+                    <input type="text" id="city" class="form-control" required>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <label for="state" class="form-label">State</label>
+                    <input type="text" id="state" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="zip" class="form-label">Zip Code</label>
+                    <input type="text" id="zip" class="form-control" required>
+                </div>
+                <div class="col-md-4">
+                    <label for="rent-price" class="form-label">Rent per month ($)</label>
+                    <input type="number" id="rent-price" class="form-control" required>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="start-date" class="form-label">Start Date</label>
+                    <input type="date" id="start-date" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="end-date" class="form-label">End Date</label>
+                    <input type="date" id="end-date" class="form-control" required>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="bedrooms" class="form-label">Number of Bedrooms</label>
+                    <input type="number" id="bedrooms" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="bathrooms" class="form-label">Number of Bathrooms</label>
+                    <input type="number" id="bathrooms" class="form-control" required>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="property-type" class="form-label">Property Type</label>
+                    <select id="property-type" class="form-select" required>
+                        <option value="" disabled selected>Select</option>
+                        <option value="apartment">Apartment</option>
+                        <option value="house">House</option>
+                        <option value="student-housing">Student Housing</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="shared-space" class="form-label">Shared Space?</label>
+                    <select id="shared-space" class="form-select" required>
+                        <option value="" disabled selected>Select</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="furnished" class="form-label">Furnished?</label>
+                    <select id="furnished" class="form-select" required>
+                        <option value="" disabled selected>Select</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label for="bathroom-type" class="form-label">Private or Shared Bathroom?</label>
+                    <select id="bathroom-type" class="form-select" required>
+                        <option value="" disabled selected>Select</option>
+                        <option value="private">Private</option>
+                        <option value="shared">Shared</option>
+                    </select>
+                </div>
+            </div>
 
             <!-- Amenities -->
-            <h4>Amenities</h4><br>
-            <div class="amenities-container">
-
-                <label class="amenity"><input type="checkbox" id="gym"> Gym</label>
-                <label class="amenity"><input type="checkbox" id="pool"> Pool</label>
-                <label class="amenity"><input type="checkbox" id="washer-dryer"> Washer/Dryer</label>
-                <label class="amenity"><input type="checkbox" id="dishwasher"> Dishwasher</label>
-                <label class="amenity"><input type="checkbox" id="tv"> TV</label>
-                <label class="amenity"><input type="checkbox" id="full-kitchen"> Full Kitchen</label>
-                <label class="amenity"><input type="checkbox" id="pet-friendly"> Pet Friendly</label>
-                <label class="amenity"><input type="checkbox" id="free-parking"> Free Parking</label>
-                <label class="amenity"><input type="checkbox" id="paid-parking"> Paid Parking</label>
-                <label class="amenity"><input type="checkbox" id="remote-lock"> Remote Lock</label>
-                <label class="amenity"><input type="checkbox" id="handicapped-access"> Handicapped Access</label>
-            </div><br>
+            <h4 class="text-center">Amenities</h4>
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="gym">
+                        <label class="form-check-label" for="gym">Gym</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="pool">
+                        <label class="form-check-label" for="pool">Pool</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="washer-dryer">
+                        <label class="form-check-label" for="washer-dryer">Washer/Dryer</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="dishwasher">
+                        <label class="form-check-label" for="dishwasher">Dishwasher</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="tv">
+                        <label class="form-check-label" for="tv">TV</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="full-kitchen">
+                        <label class="form-check-label" for="full-kitchen">Full Kitchen</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="pet-friendly">
+                        <label class="form-check-label" for="pet-friendly">Pet Friendly</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="free-parking">
+                        <label class="form-check-label" for="free-parking">Free Parking</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="paid-parking">
+                        <label class="form-check-label" for="paid-parking">Paid Parking</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="remote-lock">
+                        <label class="form-check-label" for="remote-lock">Remote Lock</label>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input" type="checkbox" id="handicapped-access">
+                        <label class="form-check-label" for="handicapped-access">Handicapped Access</label>
+                    </div>
+                </div>
+            </div>
 
             <!-- Image Upload -->
-            <h4>Upload Images</h4><br>
-            <input type="file" id="images" name="images" accept="image/*" multiple><br><br>
-
-            <!-- Additional Comments -->
-            <h4>Additional Comments</h4><br>
-            <textarea id="comments" rows="4" cols="50" placeholder="Enter extra details..."></textarea><br><br>
+            <h4 class="text-center">Upload Images</h4>
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <input type="file" id="images" name="images" class="form-control" accept="image/*" multiple>
+                </div>
+            </div>
 
             <!-- Contact Information -->
-            <h4>Contact Information</h4><br>
-            <label for="phone">Phone Number:</label>
-            <input type="tel" id="phone" placeholder="123-456-7890" required><br><br>
-
-            <label for="email">Email Address:</label>
-            <input type="email" id="email" placeholder="email@example.com" required><br><br>
+            <h4 class="text-center">Contact Information</h4>
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <label for="phone" class="form-label">Phone Number</label>
+                    <input type="tel" id="phone" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                    <label for="email" class="form-label">Email Address</label>
+                    <input type="email" id="email" class="form-control" required>
+                </div>
+            </div>
+    
+            <!-- Additional Comments -->
+            <h4 class="text-center">Additional Comments</h4>
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    <textarea id="comments" class="form-control" rows="4" placeholder="Enter extra details..."></textarea>
+                </div>
+            </div>
 
             <!-- Submit Button -->
-            <button type="submit">Submit Lease</button>
+            <button type="submit" class="btn btn-primary w-100">Submit Lease</button>
         </form>
     </div>
 
+    <!-- Footer -->
+    <footer class="footer mt-5">
+        <p>&copy; 2025 Your Company. All rights reserved.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         function validateInput(input, condition) {
             if (condition) {
@@ -277,14 +343,20 @@
                 }
             }
         });
-        
-        // Check if user is logged in on page load
+
+        async function loadNavbar() {
+            const response = await fetch("navbar.html");
+            const navbarHTML = await response.text();
+            document.getElementById("navbar-placeholder").innerHTML = navbarHTML;
+        }
+        loadNavbar();
+
         async function checkSession() {
             try {
                 const response = await fetch("/checkSession");
                 if (response.ok) {
                     document.getElementById("auth-link").innerHTML =
-                        `<a href="javascript:void(0);" onclick="logout()">Logout</a>`;
+                        `<li><a class="dropdown-item" href="javascript:void(0);" onclick="logout()">Logout</a></li>`;
                 }
             } catch (error) {
                 console.log("Not logged in");
@@ -300,5 +372,4 @@
         checkSession();
     </script>
 </body>
-
 </html>

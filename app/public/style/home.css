@@ -1,0 +1,34 @@
+.hero-section {
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.1)), url('../images/background.jpg') no-repeat center center;
+    background-size: cover;
+    color: white;
+    text-align: center;
+    padding: 200px 0;
+    position: relative;
+    margin-top: -5px;
+}
+.hero-content {
+    animation: fadeIn 2s ease-in-out;
+}
+@keyframes fadeIn {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+.hero-content h1 {
+    font-family: 'Segoe UI', sans-serif;
+    font-weight: bold;
+    font-size: 3rem;
+    text-shadow: 2px 2px 10px rgba(0, 0, 0, 0.5);
+}
+.hero-content p {
+    font-family: 'Segoe UI', sans-serif;
+    font-weight: normal;
+    font-size: 1.5rem;
+}
+.footer {
+    background-color: #dadadab9; /* Cream color */
+    color: #000000;
+    text-align: center;
+    padding: 12px 0;
+    height: 50px;
+}
