@@ -1,0 +1,65 @@
+.carousel-control-prev,
+.carousel-control-next {
+    width: 50px;
+    height: 50px;
+    background-color: #004953;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.3s ease;
+}
+
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    filter: invert(1);
+}
+
+.carousel-control-prev:hover,
+.carousel-control-next:hover {
+    background-color: white;
+}
+
+.carousel-control-prev:hover .carousel-control-prev-icon,
+.carousel-control-next:hover .carousel-control-next-icon {
+    filter: invert(0) brightness(0) saturate(100%) hue-rotate(100deg) sepia(100%);
+}
+
+.custom-green-text {
+    color: #004953 !important;
+}
+
+.about-container {
+    margin-top: 50px;
+    padding: 40px;
+    background-color: #004953;
+    color: white;
+    max-width: 900px;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.about-container h2,
+.about-container p {
+    text-align: center;
+}
+
+.about-container h2 {
+    font-size: 2rem;
+    font-weight: bold;
+}
+
+.about-container p {
+    font-size: 1.2rem;
+}
+
+.about-container img {
+    max-width: 200%;
+    height: auto;
+    transform: scale(1.5) translateX(-100px) translateY(70px);
+}
