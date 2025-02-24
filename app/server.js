@@ -19,9 +19,9 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT || 5432,
   // COMMENT OUT THE PART BELOW WHEN USING A LOCAL DATABASE
-  //ssl: {
-  // rejectUnauthorized: false
-  //}
+  ssl: {
+   rejectUnauthorized: false
+  }
 });
 
 
@@ -33,7 +33,7 @@ const s3 = new AWS.S3({
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 } // 10 MB limit
+  limits: { fileSize: 10 * 1024 * 1024 } 
 });
 
 app.use(express.static(path.join(__dirname, "public")));
