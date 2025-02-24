@@ -156,7 +156,7 @@ app.get("/checkSession", async (req, res) => {
     const user = result.rows[0];
 
     if (user) {
-      return res.status(200).send(`Logged in as ${user.username}`);
+      return res.status(200).send(`${user.username}`);
     } else {
       return res.status(401).send("Session expired. Please log in again.");
     }
