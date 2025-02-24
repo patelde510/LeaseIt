@@ -1,0 +1,73 @@
+/* General Styling */
+body {
+    background-color: #f8f9fa;
+    font-family: 'Arial', sans-serif;
+}
+
+/* Container */
+#post-content-container {
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 30px;
+    background: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Headers */
+h4 {
+    font-weight: 600;
+    color: #333;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #007bff;
+}
+
+/* Labels */
+.form-label {
+    font-weight: 600;
+    color: #555;
+}
+
+/* Inputs and Selects */
+.form-control,
+.form-select {
+    border-radius: 8px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    transition: 0.3s;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* Amenities */
+.form-check-inline {
+    margin-right: 15px;
+}
+
+/* Buttons */
+button[type="submit"] {
+    background: #007bff;
+    border: none;
+    padding: 12px;
+    font-size: 16px;
+    border-radius: 8px;
+    transition: 0.3s;
+}
+
+button[type="submit"]:hover {
+    background: #0056b3;
+}
+
+/* Footer */
+.footer {
+    text-align: center;
+    padding: 15px;
+    background: #f1f1f1;
+    color: #555;
+    font-size: 14px;
+    margin-top: 40px;
+}
