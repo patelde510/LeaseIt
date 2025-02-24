@@ -24,6 +24,7 @@ const pool = new Pool({
   }
 });
 
+
 const s3 = new AWS.S3({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID_S3,
   secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY_S3,
@@ -32,7 +33,7 @@ const s3 = new AWS.S3({
 
 const upload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 } // 10 MB limit
+  limits: { fileSize: 10 * 1024 * 1024 } 
 });
 
 app.use(express.static(path.join(__dirname, "public")));
@@ -155,7 +156,7 @@ app.get("/checkSession", async (req, res) => {
     const user = result.rows[0];
 
     if (user) {
-      return res.status(200).send(`Logged in as ${user.username}`);
+      return res.status(200).send(`${user.username}`);
     } else {
       return res.status(401).send("Session expired. Please log in again.");
     }
