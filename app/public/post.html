@@ -326,6 +326,72 @@
         });
 
         document.addEventListener("DOMContentLoaded", function () {
+
+            // Prevent form submission if fields are invalid
+            document.getElementById("lease-form").addEventListener("submit", async function (event) {
+                const inputs = document.querySelectorAll("input, select");
+                let allValid = true;
+
+                inputs.forEach(input => {
+                    if (input.style.border === "2px solid red") {
+                        allValid = false;
+                    }
+                });
+
+                if (!allValid) {
+                    event.preventDefault();
+                    alert("Please correct invalid fields before submitting.");
+                } else {
+                    event.preventDefault();
+
+                    const amenities = Array.from(document.querySelectorAll("input[type='checkbox']:checked")).map(cb => cb.id);
+
+                    const leaseData = {
+                        title: document.getElementById("title").value,
+                        description: document.getElementById("comments").value,
+                        price: document.getElementById("rent-price").value,
+                        start_date: document.getElementById("start-date").value,
+                        end_date: document.getElementById("end-date").value,
+                        property_type: document.getElementById("property-type").value,
+                        shared_space: document.getElementById("shared-space").value === "yes",
+                        furnished: document.getElementById("furnished").value === "yes",
+                        bathroom_type: document.getElementById("bathroom-type").value,
+                        bedrooms: document.getElementById("bedrooms").value,
+                        bathrooms: document.getElementById("bathrooms").value,
+                        address: document.getElementById("address").value,
+                        city: document.getElementById("city").value,
+                        state: document.getElementById("state").value,
+                        zip: document.getElementById("zip").value,
+                        phone: document.getElementById("phone").value,
+                        email: document.getElementById("email").value,
+                        amenities: amenities
+                    };
+
+                    const formData = new FormData();
+                    formData.append("leaseData", JSON.stringify(leaseData));
+
+                    imageFiles.forEach(file => {
+                        formData.append("images", file);
+                    });
+
+                    try {
+                        const response = await fetch("/post-lease", {
+                            method: "POST",
+                            body: formData
+                        });
+
+                        const data = await response.json();
+                        alert(data.message);
+                        if (response.ok) {
+                            window.location.href = "index.html";
+                        }
+                    } catch (error) {
+                        console.error("Error posting lease:", error);
+                        alert("An error occurred while posting the lease. Check console for details.");
+                    }
+                }
+            });
+            
             const imageUploadInput = document.getElementById("image-upload");
             const customUploadButton = document.getElementById("custom-upload-button");
             const dropArea = document.getElementById("drop-area");
@@ -415,71 +481,6 @@
             document.getElementById("lease-form").addEventListener("keydown", function (event) {
                 if (event.key === "Enter" && event.target.tagName !== "TEXTAREA") {
                     event.preventDefault();
-                }
-            });
-
-            // Prevent form submission if fields are invalid
-            document.getElementById("lease-form").addEventListener("submit", async function (event) {
-                const inputs = document.querySelectorAll("input, select");
-                let allValid = true;
-
-                inputs.forEach(input => {
-                    if (input.style.border === "2px solid red") {
-                        allValid = false;
-                    }
-                });
-
-                if (!allValid) {
-                    event.preventDefault();
-                    alert("Please correct invalid fields before submitting.");
-                } else {
-                    event.preventDefault();
-
-                    const amenities = Array.from(document.querySelectorAll("input[type='checkbox']:checked")).map(cb => cb.id);
-
-                    const leaseData = {
-                        title: document.getElementById("title").value,
-                        description: document.getElementById("comments").value,
-                        price: document.getElementById("rent-price").value,
-                        start_date: document.getElementById("start-date").value,
-                        end_date: document.getElementById("end-date").value,
-                        property_type: document.getElementById("property-type").value,
-                        shared_space: document.getElementById("shared-space").value === "yes",
-                        furnished: document.getElementById("furnished").value === "yes",
-                        bathroom_type: document.getElementById("bathroom-type").value,
-                        bedrooms: document.getElementById("bedrooms").value,
-                        bathrooms: document.getElementById("bathrooms").value,
-                        address: document.getElementById("address").value,
-                        city: document.getElementById("city").value,
-                        state: document.getElementById("state").value,
-                        zip: document.getElementById("zip").value,
-                        phone: document.getElementById("phone").value,
-                        email: document.getElementById("email").value,
-                        amenities: amenities
-                    };
-
-                    const formData = new FormData();
-                    formData.append("leaseData", JSON.stringify(leaseData));
-
-                    imageFiles.forEach(file => {
-                        formData.append("images", file);
-                    });
-
-                    try {
-                        const response = await fetch("/post-lease", {
-                            method: "POST",
-                            body: formData
-                        });
-
-                        const data = await response.json();
-                        alert(data.message);
-                        if (response.ok) {
-                            window.location.href = "index.html";
-                        }
-                    } catch (error) {
-                        console.error("Error posting lease:", error);
-                        alert("An error occurred while posting the lease. Check console for details.");
-                    }
                 }
             });
         });
