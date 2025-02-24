@@ -71,3 +71,15 @@ button[type="submit"]:hover {
     font-size: 14px;
     margin-top: 40px;
 }
+
+#drop-area {
+    border: 2px dashed darkgray;
+    background-color: lightgray;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+}
+
+#drop-area.bg-light {
+    background-color: #f8f9fa;
+}
