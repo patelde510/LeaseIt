@@ -351,6 +351,10 @@ app.get("/login", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
+app.get('/navbar.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'navbar.js'));
+});
+
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
