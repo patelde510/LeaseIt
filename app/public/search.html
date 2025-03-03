@@ -10,6 +10,84 @@
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 
     <style>
+        .lease-card {
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+            width: 100%;
+            height: 350px; /* Smaller card size */
+            display: flex;
+            flex-direction: column;
+            font-size: 12px; /* Smaller text */
+        }
+    
+        .lease-card:hover {
+            transform: scale(1.02);
+        }
+    
+        .carousel-item img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+    
+        .lease-image-container {
+            width: 100%;
+            height: 350px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #d3d3d3;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .no-image {
+            font-size: 12px;
+            color: black;
+            text-align: center;
+            font-weight: bold;
+
+        }
+    
+        .carousel-control-prev, .carousel-control-next {
+            width: 10%;
+        }
+    
+        .hide-arrows .carousel-control-prev,
+        .hide-arrows .carousel-control-next {
+            display: none; /* Hide arrows when no images */
+        }
+    
+        .text-truncate {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    
+        .card-body {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+            padding: 10px;
+        }
+    
+        .rent-price {
+            font-size: 14px;
+            margin-bottom: 6px;
+        }
+    
+        .extra-small {
+            font-size: 12px;
+            margin-bottom: 3px;
+        }
+    
+        .view-btn {
+            font-size: 14px;
+            padding: 6px;
+            background: #004953;
+        }
         /* Search Bar */
         .search-container {
             background-color: #f5f5f5;
@@ -69,7 +147,6 @@
 
     <!-- Search Bar -->
     <div class="container">
-        <h2 class="text-center mt-4">Search for a Lease</h2>
         <div class="search-container">
             <input type="text" id="search-address" placeholder="Enter Address or Zip Code">
             <input type="date" id="search-start-date">
@@ -146,8 +223,7 @@
 
     <!-- Search Results -->
     <div class="container">
-        <h3 class="text-center mt-4">Available Listings</h3>
-        <div id="search-results"></div>
+        <div id="search-results" class="row"></div>
     </div>
 
     <!-- Footer -->
@@ -158,6 +234,82 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/navbar.js"></script>
     <script>
+        async function fetchAllLeases() {
+            const response = await fetch("/all-leases");
+            const leases = await response.json();
+            const resultsContainer = document.getElementById("search-results");
+            resultsContainer.innerHTML = "";
+    
+            if (leases.length === 0) {
+                resultsContainer.innerHTML = "<p class='text-center'>No listings found.</p>";
+                return;
+            }
+    
+            leases.forEach((lease,  index) => {
+                const leaseCard = document.createElement("div");
+                leaseCard.classList.add("col-lg-3", "col-md-4", "col-sm-6", "mb-3");  // Fits more per row
+    
+                let carouselId = `carousel-${index}`;
+                let carouselInner = "";
+                let hideArrows = ""; // Hide arrows if no images
+
+                if (lease.images && lease.images.length > 0) {
+                    lease.images.forEach((image, i) => {
+                        carouselInner += `
+                            <div class="carousel-item ${i === 0 ? 'active' : ''}">
+                                <img src="${image}" class="d-block w-100 lease-image" alt="Lease Image">
+                            </div>
+                        `;
+                    });
+                } else {
+                    carouselInner = `
+                        <div class="carousel-item active">
+                            <div class="no-image">No Image Available</div>
+                        </div>
+                    `;
+                    hideArrows = "hide-arrows"; // Hide arrows if no images
+
+                }
+
+                let displayedAmenities = lease.amenities ? lease.amenities.slice(0, 2).join(", ") : "None listed";
+                if (lease.amenities.length > 2) displayedAmenities += " ...";
+    
+                leaseCard.innerHTML = `
+                    <div class="card lease-card">
+                <div id="${carouselId}" class="carousel slide lease-image-container ${hideArrows}" data-bs-ride="carousel">
+                            <div class="carousel-inner">
+                                ${carouselInner}
+                            </div>
+                            <button class="carousel-control-prev" type="button" data-bs-target="#${carouselId}" data-bs-slide="prev">
+                                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            </button>
+                            <button class="carousel-control-next" type="button" data-bs-target="#${carouselId}" data-bs-slide="next">
+                                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            </button>
+                        </div>
+                        <div class="card-body d-flex flex-column">
+                            <h6 class="card-title text-truncate" title="${lease.title}">${lease.title}</h6>
+                            <p class="text-muted extra-small text-truncate" title="${lease.street}, ${lease.city}, ${lease.state} ${lease.zip_code}">
+                                ${lease.street}, ${lease.city}, ${lease.state} ${lease.zip_code}
+                            </p>
+                            <p class="extra-small"><strong>Lease Duration:</strong> ${lease.lease_duration}</p>
+                            <p class="extra-small text-truncate" title="${lease.amenities.join(', ')}">
+                                <strong>Amenities:</strong> ${lease.amenities.slice(0, 2).join(", ")}...
+                            </p>
+                            <div class="mt-auto">
+                                <p class="rent-price text-success"><strong>$${lease.price}/month</strong></p>
+                                <a href="#" class="btn view-btn btn-primary btn-sm w-100">View Listing</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+    
+                resultsContainer.appendChild(leaseCard);
+            });
+        }
+    
+        fetchAllLeases();    
+
         async function loadNavbar() {
             const response = await fetch("navbar.html");
             const navbarHTML = await response.text();

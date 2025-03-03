@@ -345,6 +345,31 @@ app.post("/search-leases", async (req, res) => {
   }
 });
 
+app.get("/all-leases", async (req, res) => {
+  try {
+    const query = `
+      SELECT l.lease_id, l.title, l.price, l.bedrooms, l.bathrooms, 
+             a.street, a.city, a.state, a.zip_code,
+             TO_CHAR(l.start_date, 'Month YYYY') || ' to ' || TO_CHAR(l.end_date, 'Month YYYY') AS lease_duration,
+             ARRAY_AGG(DISTINCT li.image_url) FILTER (WHERE li.image_url IS NOT NULL) AS images,
+             ARRAY_AGG(DISTINCT am.amenity) FILTER (WHERE am.amenity IS NOT NULL) AS amenities
+      FROM leases l
+      JOIN addresses a ON l.lease_id = a.lease_id
+      LEFT JOIN lease_images li ON l.lease_id = li.lease_id
+      LEFT JOIN amenities am ON l.lease_id = am.lease_id
+      GROUP BY l.lease_id, l.title, l.price, l.bedrooms, l.bathrooms, 
+               a.street, a.city, a.state, a.zip_code, lease_duration
+      ORDER BY l.price ASC;
+    `;
+
+    const result = await pool.query(query);
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Error fetching leases:", error);
+    res.status(500).json({ error: "Server error fetching leases" });
+  }
+});
+
 
 
 app.get("/login", (req, res) => {
