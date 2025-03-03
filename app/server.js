@@ -19,9 +19,9 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT || 5432,
   // COMMENT OUT THE PART BELOW WHEN USING A LOCAL DATABASE
-  ssl: {
-   rejectUnauthorized: false
-  }
+  // ssl: {
+  //  rejectUnauthorized: false
+  // }
 });
 
 
@@ -231,6 +231,121 @@ app.post("/post-lease", verifySession, upload.array("images", 10), async (req, r
     res.status(500).json({ error: "Failed to post lease" });
   }
 });
+
+
+// *Search Lease*
+app.post("/search-leases", async (req, res) => {
+  try {
+      const {
+          address, city, state, zip, startDate, endDate, maxPrice, bedrooms, bathrooms,
+          propertyType, sharedSpace, furnished, privateBathroom, amenities
+      } = req.body;
+
+      let query = `
+          SELECT l.lease_id, l.title, l.price, l.bedrooms, l.bathrooms, a.street, a.city, a.state, a.zip_code
+          FROM leases l
+          JOIN addresses a ON l.lease_id = a.lease_id
+          WHERE 1=1
+      `;
+
+      let values = [];
+      let counter = 1;
+
+      if (address) {
+          query += ` AND (a.street ILIKE $${counter} OR a.city ILIKE $${counter} OR a.state ILIKE $${counter} OR a.zip_code = $${counter})`;
+          values.push(`%${address}%`);
+          counter++;
+      }
+      if (city) {
+          query += ` AND a.city ILIKE $${counter}`;
+          values.push(`%${city}%`);
+          counter++;
+      }
+      if (state) {
+          query += ` AND a.state ILIKE $${counter}`;
+          values.push(`%${state}%`);
+          counter++;
+      }
+      if (zip) {
+          query += ` AND a.zip_code = $${counter}`;
+          values.push(zip.toString()); // Ensure zip is treated as a string
+          counter++;
+      }
+      if (startDate) {
+          query += ` AND l.start_date >= $${counter}`;
+          values.push(startDate);
+          counter++;
+      }
+      if (endDate) {
+          query += ` AND l.end_date <= $${counter}`;
+          values.push(endDate);
+          counter++;
+      }
+      if (maxPrice) {
+          query += ` AND l.price <= $${counter}`;
+          values.push(maxPrice);
+          counter++;
+      }
+      if (bedrooms) {
+          query += ` AND l.bedrooms = $${counter}`;
+          values.push(bedrooms);
+          counter++;
+      }
+      if (bathrooms) {
+          query += ` AND l.bathrooms = $${counter}`;
+          values.push(bathrooms);
+          counter++;
+      }
+      if (propertyType) {
+          query += ` AND l.property_type = $${counter}`;
+          values.push(propertyType);
+          counter++;
+      }
+      if (sharedSpace) {
+          query += ` AND l.shared_space = $${counter}`;
+          values.push(sharedSpace);
+          counter++;
+      }
+      if (furnished) {
+          query += ` AND l.furnished = $${counter}`;
+          values.push(furnished);
+          counter++;
+      }
+      if (privateBathroom) {
+          query += ` AND l.bathroom_type = $${counter}`;
+          values.push(privateBathroom);
+          counter++;
+      }
+
+      // Filter by Amenities (only show results that include ALL selected amenities)
+      if (amenities && amenities.length > 0) {
+          amenities.forEach((amenity, i) => {
+              query += ` AND EXISTS (
+                  SELECT 1 FROM amenities a2
+                  WHERE a2.lease_id = l.lease_id AND a2.amenity = $${counter + i}
+              )`;
+          });
+          values.push(...amenities);
+          counter += amenities.length;
+      }
+
+      // Sort results by price ascending if maxPrice is provided
+      if (maxPrice) {
+          query += ` ORDER BY l.price ASC`;
+      }
+
+      console.log("Executing query:", query);
+      console.log("Values:", values);
+
+      const result = await pool.query(query, values);
+      res.json(result.rows);
+  } catch (error) {
+      console.error("Error fetching leases:", error);
+      res.status(500).json({ error: "Server error fetching leases" });
+  }
+});
+
+
 
 app.get("/login", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));

@@ -1,46 +1,158 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search For Lease</title>
+    <title>Search Leases</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="style/navbar.css">
     <link rel="stylesheet" href="style/styles.css">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+
+    <style>
+        /* Search Bar */
+        .search-container {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 15px;
+            margin: 20px auto;
+            max-width: 900px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .search-container input, .search-container select {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        .search-btn, .filter-btn {
+            background: #004953;
+            border: none;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Filters Modal */
+        .modal-content {
+            padding: 20px;
+        }
+
+        .filter-section {
+            margin-bottom: 15px;
+        }
+
+        .filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .amenities-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+    </style>
 </head>
 <body>
-    <!-- Navbar Placeholder -->
+
+    <!-- Navbar -->
     <div id="navbar-placeholder"></div>
 
-    <div id="search-content-container" class="content-container">
-        <h2 class="text-center">Search for a Lease</h2>
-        
-        <div class="search-bar d-flex">
-            <input type="text" id="search-location" placeholder="Where? Enter city, zip code, or address...">
-            <input type="date" id="search-checkin" placeholder="Check-in">
-            <input type="date" id="search-checkout" placeholder="Check-out">
-            <select id="search-guests">
-                <option value="">Who? Guests</option>
-                <option value="1">1 Guest</option>
-                <option value="2">2 Guests</option>
-                <option value="3">3 Guests</option>
-                <option value="4+">4+ Guests</option>
-            </select>
-            <button onclick="searchListings()">
-                <i class="fas fa-search"></i>
-            </button>
-        </div>
-        
-        <h3 class="mt-4">Available Listings</h3>
-        <div id="listing-results" class="row row-cols-1 row-cols-md-2 g-4">
-            <!-- Listings will be dynamically added here -->
+    <!-- Search Bar -->
+    <div class="container">
+        <h2 class="text-center mt-4">Search for a Lease</h2>
+        <div class="search-container">
+            <input type="text" id="search-address" placeholder="Enter Address or Zip Code">
+            <input type="date" id="search-start-date">
+            <input type="date" id="search-end-date">
+            <input type="number" id="search-min-price" placeholder="Min Price ($)">
+            <button class="search-btn" id="search-btn"><i class="fas fa-search"></i></button>
+            <button class="filter-btn" id="filter-btn"><i class="fas fa-sliders-h"></i> Filters</button>
         </div>
     </div>
-    
+
+    <!-- Additional Filters Modal -->
+    <div class="modal" id="filterModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <h4>Additional Filters</h4>
+                
+                <div class="filter-section">
+                    <h5>Property Details</h5>
+                    <div class="filter-group">
+                        <input type="number" id="search-bedrooms" placeholder="Bedrooms">
+                        <input type="number" id="search-bathrooms" placeholder="Bathrooms">
+                        <select id="search-property-type">
+                            <option value="">Any Property Type</option>
+                            <option value="apartment">Apartment</option>
+                            <option value="house">House</option>
+                            <option value="student-housing">Student Housing</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <h5>Preferences</h5>
+                    <div class="filter-group">
+                        <select id="search-shared-space">
+                            <option value="">Shared Space?</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                        <select id="search-furnished">
+                            <option value="">Furnished?</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                        <select id="search-private-bathroom">
+                            <option value="">Private or Shared Bathroom?</option>
+                            <option value="private">Private</option>
+                            <option value="shared">Shared</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="filter-section">
+                    <h5>Amenities</h5>
+                    <div class="amenities-group">
+                        <label><input type="checkbox" class="amenity" value="Gym"> Gym</label>
+                        <label><input type="checkbox" class="amenity" value="Pool"> Pool</label>
+                        <label><input type="checkbox" class="amenity" value="Washer/Dryer"> Washer/Dryer</label>
+                        <label><input type="checkbox" class="amenity" value="Dishwasher"> Dishwasher</label>
+                        <label><input type="checkbox" class="amenity" value="TV"> TV</label>
+                        <label><input type="checkbox" class="amenity" value="Full Kitchen"> Full Kitchen</label>
+                        <label><input type="checkbox" class="amenity" value="Pet Friendly"> Pet Friendly</label>
+                        <label><input type="checkbox" class="amenity" value="Free Parking"> Free Parking</label>
+                        <label><input type="checkbox" class="amenity" value="Paid Parking"> Paid Parking</label>
+                        <label><input type="checkbox" class="amenity" value="Remote Lock"> Remote Lock</label>
+                        <label><input type="checkbox" class="amenity" value="Handicapped Access"> Handicapped Access</label>
+                    </div>
+                </div>
+
+                <button class="search-btn" id="apply-filters">Apply Filters</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search Results -->
+    <div class="container">
+        <h3 class="text-center mt-4">Available Listings</h3>
+        <div id="search-results"></div>
+    </div>
+
     <!-- Footer -->
-    <footer class="footer">
-        <p>&copy; 2025 Your Company. All rights reserved.</p>
+    <footer class="footer mt-5">
+        <p>&copy; 2025 Lease-It. All rights reserved.</p>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -52,34 +164,37 @@
         }
         loadNavbar();
 
-        async function searchListings() {
-            const query = document.getElementById("search-location").value;
-            document.getElementById("listing-results").innerHTML = `<p class='text-center'>Searching for "${query}"...</p>`;
-            
-            setTimeout(() => {
-                document.getElementById("listing-results").innerHTML = `
-                    <div class="col">
-                        <div class="card">
-                            <img src="images/sample.jpg" class="card-img-top" alt="Sample Listing">
-                            <div class="card-body">
-                                <h5 class="card-title">2-Bedroom Apartment</h5>
-                                <p class="card-text">Located in downtown, $1200/month.</p>
-                                <a href="#" class="btn btn-primary">View Details</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card">
-                            <img src="images/sample.jpg" class="card-img-top" alt="Sample Listing">
-                            <div class="card-body">
-                                <h5 class="card-title">Studio Apartment</h5>
-                                <p class="card-text">Close to university, $900/month.</p>
-                                <a href="#" class="btn btn-primary">View Details</a>
-                            </div>
-                        </div>
-                    </div>`;
-            }, 1500);
-        }
+        document.getElementById("filter-btn").addEventListener("click", function () {
+            document.getElementById("filterModal").style.display = "block";
+        });
+
+        document.getElementById("apply-filters").addEventListener("click", function () {
+            document.getElementById("filterModal").style.display = "none";
+        });
+
+        document.getElementById("search-btn").addEventListener("click", async function () {
+            const filters = {
+                address: document.getElementById("search-address").value,
+                startDate: document.getElementById("search-start-date").value,
+                endDate: document.getElementById("search-end-date").value,
+                minPrice: document.getElementById("search-min-price").value,
+                bedrooms: document.getElementById("search-bedrooms").value,
+                bathrooms: document.getElementById("search-bathrooms").value,
+                propertyType: document.getElementById("search-property-type").value,
+                amenities: [...document.querySelectorAll(".amenity:checked")].map(e => e.value)
+            };
+
+            const response = await fetch("/search-leases", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(filters),
+            });
+
+            const results = await response.json();
+            document.getElementById("search-results").innerHTML = results.length ?
+                results.map(lease => `<div>${lease.title} - ${lease.price}</div>`).join("") :
+                "<p>No results found.</p>";
+        });
     </script>
 </body>
 </html>
