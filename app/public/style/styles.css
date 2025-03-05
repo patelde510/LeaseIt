@@ -36,7 +36,7 @@ body {
     flex-grow: 1;
 }
 .search-bar button {
-    background: #ff385c;
+    background: #004953;
     color: white;
     border-radius: 50%;
     width: 50px;
@@ -47,7 +47,7 @@ body {
     border: none;
 }
 .search-bar button:hover {
-    background: #e12b4c;
+    background:rgba(20, 159, 141, 0.302);
 }
 
 #search-content-container {
@@ -71,7 +71,7 @@ body {
     width: 100%;
     padding: 10px;
     border: none;
-    background-color: #007bff;
+    background-color: #004953;
     color: white;
     border-radius: 5px;
 }
@@ -98,7 +98,7 @@ body {
     width: 100%;
     padding: 10px;
     border: none;
-    background-color: #007bff;
+    background-color: #004953;
     color: white;
     border-radius: 5px;
 }

@@ -1,0 +1,120 @@
+.lease-card {
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s;
+    width: 100%;
+    height: 350px;
+    display: flex;
+    flex-direction: column;
+    font-size: 12px;
+}
+
+.lease-card:hover {
+    transform: scale(1.02);
+}
+
+.carousel-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.lease-image-container {
+    width: 100%;
+    height: 350px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #d3d3d3;
+    overflow: hidden;
+    position: relative;
+}
+
+.no-image {
+    font-size: 12px;
+    color: black;
+    text-align: center;
+    font-weight: bold;
+
+}
+
+.carousel-control-prev,
+.carousel-control-next {
+    width: 10%;
+}
+
+.hide-arrows .carousel-control-prev,
+.hide-arrows .carousel-control-next {
+    display: none;
+}
+
+.text-truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.card-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    padding: 10px;
+}
+
+.rent-price {
+    font-size: 14px;
+    margin-bottom: 6px;
+}
+
+.extra-small {
+    font-size: 12px;
+    margin-bottom: 3px;
+}
+
+.view-btn {
+    font-size: 14px;
+    padding: 6px;
+    background: #004953;
+}
+
+#search-results {
+    margin-top: 20px;
+}
+
+.search-btn {
+    background-color: #004953;
+    border: black;
+    margin-left: 50px;
+}
+
+.search-btn:hover {
+    background: rgba(20, 159, 141, 0.302);
+    border: white;
+}
+
+.btn-apply {
+    background-color: #004953;
+    border: black;
+}
+
+.btn-apply:hover {
+    background: rgba(20, 159, 141, 0.302);
+    border: white;
+}
+
+.search-container {
+    border-radius: 40px;
+    padding: 25px 20px 35px 20px;
+    max-width: 950px;
+    margin: 0 auto;
+    margin-top: 40px;
+    box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-label {
+    display: block;
+    text-align: center;
+    font-weight: bold;
+    margin-bottom: 12px;
+}

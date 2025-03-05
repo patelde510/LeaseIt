@@ -4,76 +4,150 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search For Lease</title>
+    <title>Search Leases</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="style/navbar.css">
     <link rel="stylesheet" href="style/styles.css">
+    <link rel="stylesheet" href="style/search.css">
 </head>
+
 <body>
     <!-- Navbar Placeholder -->
     <div id="navbar-placeholder"></div>
 
-    <div id="search-content-container" class="content-container">
-        <h2 class="text-center">Search for a Lease</h2>
-        
-        <div class="search-bar d-flex">
-            <input type="text" id="search-location" placeholder="Where? Enter city, zip code, or address...">
-            <input type="date" id="search-checkin" placeholder="Check-in">
-            <input type="date" id="search-checkout" placeholder="Check-out">
-            <select id="search-guests">
-                <option value="">Who? Guests</option>
-                <option value="1">1 Guest</option>
-                <option value="2">2 Guests</option>
-                <option value="3">3 Guests</option>
-                <option value="4+">4+ Guests</option>
-            </select>
-            <button onclick="searchListings()">
-                <i class="fas fa-search"></i>
-            </button>
-        </div>
-        
-        <h3 class="mt-4">Available Listings</h3>
-        <div id="listing-results" class="row row-cols-1 row-cols-md-2 g-4">
-            <!-- Listings will be dynamically added here -->
+    <div class="container">
+        <!-- Search Filters -->
+        <div class="search-container p-3 bg-light shadow-sm">
+            <div class="row g-2 align-items-end">
+                <div class="col-md-3">
+                    <label for="search-address" class="form-label">Address</label>
+                    <input type="text" id="search-address" class="form-control"
+                        placeholder="Street, City, State, Zip Code">
+                </div>
+                <div class="col-md-2">
+                    <label for="search-month-start" class="form-label">Start Date</label>
+                    <input type="month" id="search-month-start" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <label for="search-month-end" class="form-label">End Date</label>
+                    <input type="month" id="search-month-end" class="form-control">
+                </div>
+                <div class="col-md-2">
+                    <label for="search-max-price" class="form-label">Price</label>
+                    <input type="number" id="search-max-price" class="form-control" placeholder="Max Price ($)">
+                </div>
+                <div class="col-md-3 text-center d-flex align-items-end">
+                    <button class="btn btn-outline-secondary me-2" id="filter-btn"><i class="fas fa-sliders-h"></i>
+                        Filters</button>
+                    <button class="btn search-btn btn-primary" id="search-btn"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
         </div>
     </div>
-    
+
+    <!-- Additional Filters Modal -->
+    <div class="modal fade" id="filterModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content p-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4>Additional Filters</h4>
+                    <button type="button" class="btn-close" id="close-filter-modal" aria-label="Close"></button>
+                </div>
+
+                <div class="row mb-2">
+                    <div class="col-md-6">
+                        <input type="number" id="search-bedrooms" class="form-control" placeholder="Bedrooms">
+                    </div>
+                    <div class="col-md-6">
+                        <input type="number" id="search-bathrooms" class="form-control" placeholder="Bathrooms">
+                    </div>
+                </div>
+
+                <div class="row mb-2">
+                    <div class="col-md-6">
+                        <select id="search-property-type" class="form-select">
+                            <option value="">Any Property Type</option>
+                            <option value="apartment">Apartment</option>
+                            <option value="house">House</option>
+                            <option value="student-housing">Student Housing</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <select id="search-shared-space" class="form-select">
+                            <option value="">Shared Space?</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row mb-2">
+                    <div class="col-md-6">
+                        <select id="search-furnished" class="form-select">
+                            <option value="">Furnished?</option>
+                            <option value="yes">Yes</option>
+                            <option value="no">No</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <select id="search-bathroom-type" class="form-select">
+                            <option value="">Bathroom Type?</option>
+                            <option value="private">Private</option>
+                            <option value="shared">Shared</option>
+                        </select>
+                    </div>
+                </div>
+
+                <h5>Amenities</h5>
+                <div class="d-flex flex-wrap">
+                    <label class="m-2"><input type="checkbox" class="amenity" value="Gym"> Gym</label>
+                    <label class="m-2"><input type="checkbox" class="amenity" value="Pool"> Pool</label>
+                    <label class="m-2"><input type="checkbox" class="amenity" value="Washer/Dryer"> Washer/Dryer</label>
+                    <label class="m-2"><input type="checkbox" class="amenity" value="Dishwasher"> Dishwasher</label>
+                    <label class="m-2"><input type="checkbox" class="amenity" value="TV"> TV</label>
+                    <label class="m-2"><input type="checkbox" class="amenity" value="Full Kitchen"> Full Kitchen</label>
+                    <label class="m-2"><input type="checkbox" class="amenity" value="Pet Friendly"> Pet Friendly</label>
+                    <label class="m-2"><input type="checkbox" class="amenity" value="Free Parking"> Free Parking</label>
+                    <label class="m-2"><input type="checkbox" class="amenity" value="Paid Parking"> Paid Parking</label>
+                    <label class="m-2"><input type="checkbox" class="amenity" value="Remote Lock"> Remote Lock</label>
+                    <label class="m-2"><input type="checkbox" class="amenity" value="Handicapped Access"> Handicapped
+                        Access</label>
+                </div>
+
+                <div class="d-flex justify-content-between mt-3">
+                    <button class="btn btn-secondary" id="clear-filters">Clear Filters</button>
+                    <button class="btn btn-apply btn-primary" id="apply-filters">Apply Filters</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("clear-filters").addEventListener("click", function () {
+            document.getElementById("search-bedrooms").value = "";
+            document.getElementById("search-bathrooms").value = "";
+            document.getElementById("search-property-type").value = "";
+            document.getElementById("search-shared-space").value = "";
+            document.getElementById("search-furnished").value = "";
+            document.getElementById("search-bathroom-type").value = "";
+            document.querySelectorAll(".amenity").forEach(checkbox => checkbox.checked = false);
+        });
+    </script>
+
+
+    <!-- Search Results -->
+    <div class="container">
+        <div id="search-results" class="row"></div>
+    </div>
+
     <!-- Footer -->
-    <footer class="footer">
-        <p>&copy; 2025 Your Company. All rights reserved.</p>
+    <footer class="footer mt-5">
+        <p>&copy; 2025 Lease-It. All rights reserved.</p>
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="/navbar.js"></script>
-    <script>
-        async function searchListings() {
-            const query = document.getElementById("search-location").value;
-            document.getElementById("listing-results").innerHTML = `<p class='text-center'>Searching for "${query}"...</p>`;
-            
-            setTimeout(() => {
-                document.getElementById("listing-results").innerHTML = `
-                    <div class="col">
-                        <div class="card">
-                            <img src="images/sample.jpg" class="card-img-top" alt="Sample Listing">
-                            <div class="card-body">
-                                <h5 class="card-title">2-Bedroom Apartment</h5>
-                                <p class="card-text">Located in downtown, $1200/month.</p>
-                                <a href="#" class="btn btn-primary">View Details</a>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col">
-                        <div class="card">
-                            <img src="images/sample.jpg" class="card-img-top" alt="Sample Listing">
-                            <div class="card-body">
-                                <h5 class="card-title">Studio Apartment</h5>
-                                <p class="card-text">Close to university, $900/month.</p>
-                                <a href="#" class="btn btn-primary">View Details</a>
-                            </div>
-                        </div>
-                    </div>`;
-            }, 1500);
-        }
-    </script>
+    <script src="/search.js"></script>
 </body>
 </html>
