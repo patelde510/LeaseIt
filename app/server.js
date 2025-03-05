@@ -19,9 +19,9 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT || 5432,
   // COMMENT OUT THE PART BELOW WHEN USING A LOCAL DATABASE
-  // ssl: {
-  //  rejectUnauthorized: false
-  // }
+  ssl: {
+   rejectUnauthorized: false
+  }
 });
 
 
@@ -237,7 +237,7 @@ app.post("/post-lease", verifySession, upload.array("images", 10), async (req, r
 app.post("/search-leases", async (req, res) => {
   try {
     const {
-      address, state, country, monthStart, monthEnd, maxPrice,
+      address, monthStart, monthEnd, maxPrice,
       bedrooms, bathrooms, propertyType, sharedSpace, furnished, 
       bathroomType, amenities
     } = req.body;
@@ -272,27 +272,15 @@ app.post("/search-leases", async (req, res) => {
       counter++;
     }
 
-    // **🔹 State and Country Filters**
-    if (state) {
-      query += ` AND LOWER(a.state) = LOWER($${counter})`;
-      values.push(state.toLowerCase());
-      counter++;
-    }
-    if (country) {
-      query += ` AND LOWER(a.country) = LOWER($${counter})`;
-      values.push(country.toLowerCase());
-      counter++;
-    }
-
-    // **🔹 Month Filtering**
+    // **🔹 Fix: Exact Month & Year Matching**
     if (monthStart) {
-      query += ` AND l.start_date >= $${counter}::DATE`;
-      values.push(monthStart + "-01"); // Convert YYYY-MM to YYYY-MM-DD
+      query += ` AND TO_CHAR(l.start_date, 'YYYY-MM') = $${counter}`;
+      values.push(monthStart);
       counter++;
     }
     if (monthEnd) {
-      query += ` AND l.end_date <= $${counter}::DATE`;
-      values.push(monthEnd + "-01"); // Convert YYYY-MM to YYYY-MM-DD
+      query += ` AND TO_CHAR(l.end_date, 'YYYY-MM') = $${counter}`;
+      values.push(monthEnd);
       counter++;
     }
 
@@ -329,14 +317,14 @@ app.post("/search-leases", async (req, res) => {
       counter++;
     }
 
-    // **🔹 Furnished Filter ✅ (Properly Used Now)**
+    // **🔹 Furnished Filter**
     if (furnished) {
       query += ` AND l.furnished = $${counter}`;
       values.push(furnished === "yes" ? true : false);
       counter++;
     }
 
-    // **🔹 Bathroom Type Filter ✅ (Properly Used Now)**
+    // **🔹 Bathroom Type Filter**
     if (bathroomType) {
       query += ` AND LOWER(l.bathroom_type) = LOWER($${counter})`;
       values.push(bathroomType.toLowerCase());
@@ -349,14 +337,12 @@ app.post("/search-leases", async (req, res) => {
         a.toLowerCase().replace(/\s+/g, "-").replace("/", "-")
       );
 
-      query += `
-        AND l.lease_id IN (
+      query += ` AND l.lease_id IN (
           SELECT lease_id FROM amenities
           WHERE LOWER(amenity) = ANY($${counter})
           GROUP BY lease_id
           HAVING COUNT(DISTINCT amenity) >= $${counter + 1}
-        )
-      `;
+        )`;
       values.push(formattedAmenities);
       values.push(formattedAmenities.length);
       counter += 2;
@@ -402,14 +388,20 @@ app.get("/all-leases", async (req, res) => {
   }
 });
 
-
-
 app.get("/login", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
 
 app.get('/navbar.js', (req, res) => {
   res.sendFile(path.join(__dirname, 'navbar.js'));
+});
+
+app.get('/post.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'post.js'));
+});
+
+app.get('/search.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'search.js'));
 });
 
 app.get("/", (req, res) => {
