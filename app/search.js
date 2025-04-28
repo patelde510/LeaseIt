@@ -81,6 +81,7 @@ loadNavbar();
 
 // **Search Button Click Event**
 document.getElementById("search-btn").addEventListener("click", async function () {
+
     const filters = {
         address: document.getElementById("search-address").value,
         maxPrice: document.getElementById("search-max-price").value,
@@ -170,6 +171,7 @@ document.getElementById("search-btn").addEventListener("click", async function (
 
         resultsContainer.appendChild(leaseCard);
     });
+    initializeMap(results);
 });
 
 document.getElementById("filter-btn").addEventListener("click", function () {
@@ -205,48 +207,59 @@ toggleViewBtn.addEventListener("click", () => {
         mapView.classList.remove("d-none");
         listView.classList.add("d-none");
         toggleViewBtn.textContent = "Switch to List View";
-        initializeMap();
+        document.getElementById("search-btn").click();
     } else {
         // Brings back list view if already on map view. Also updates button text back
         mapView.classList.add("d-none");
         listView.classList.remove("d-none");
         toggleViewBtn.textContent = "Switch to Map View";
+        document.getElementById("search-btn").click();
     }
 });
 
-function initializeMap() {
+function initializeMap(filteredLeases) {
     if (!map) {
         map = new google.maps.Map(document.getElementById("map-view"), {
             zoom: 12,
         });
+    }
 
-        const bounds = new google.maps.LatLngBounds(); // Create bounds object
+    const bounds = new google.maps.LatLngBounds(); // Create bounds object
 
-        // Fetch all leases and add markers dynamically
-        fetch("/all-leases")
-            .then(response => response.json())
-            .then(leases => {
-                const geocoder = new google.maps.Geocoder();
+    // Clear existing markers from the map
+    const markers = [];
+    map.markers?.forEach(marker => marker.setMap(null));
+    map.markers = markers;
 
-                leases.forEach(lease => {
-                    if (lease.latitude && lease.longitude) {
-                        // If latitude and longitude are already available, use them
-                        addMarker(lease.latitude, lease.longitude, lease, bounds);
-                    } else if (lease.street && lease.city && lease.state && lease.zip_code) {
-                        // If address is available, geocode it
-                        const address = `${lease.street}, ${lease.city}, ${lease.state} ${lease.zip_code}`;
-                        geocoder.geocode({ address: address }, (results, status) => {
-                            if (status === "OK" && results[0]) {
-                                const location = results[0].geometry.location;
-                                addMarker(location.lat(), location.lng(), lease, bounds);
-                            } else {
-                                console.error(`Geocoding failed for address: ${address}, status: ${status}`);
-                            }
-                        });
-                    }
-                });
-            })
-            .catch(error => console.error("Error fetching leases for map:", error));
+    const geocoder = new google.maps.Geocoder();
+
+    filteredLeases.forEach(lease => {
+        if (lease.latitude && lease.longitude) {
+            // If latitude and longitude are already available, use them
+            addMarker(lease.latitude, lease.longitude, lease, bounds);
+        } else if (lease.street && lease.city && lease.state && lease.zip_code) {
+            // If address is available, geocode it
+            const address = `${lease.street}, ${lease.city}, ${lease.state} ${lease.zip_code}`;
+            geocoder.geocode({ address: address }, (results, status) => {
+                if (status === "OK" && results[0]) {
+                    const location = results[0].geometry.location;
+                    addMarker(location.lat(), location.lng(), lease, bounds);
+                } else {
+                    console.error(`Geocoding failed for address: ${address}, status: ${status}`);
+                }
+            });
+        }
+    });
+
+    // Adjust the map to fit all markers
+    if (leases.length > 0) {
+        if (leases.length === 1) {
+            // Set a default zoom level when only one result is shown
+            map.setCenter(bounds.getCenter());
+            map.setZoom(1); // Adjust this zoom level as needed
+        } else {
+            map.fitBounds(bounds);
+        }
     }
 }
 
@@ -318,6 +331,8 @@ function addMarker(lat, lng, lease, bounds) {
     // Extend the bounds to include this marker's position
     bounds.extend({ lat: lat, lng: lng });
 
-    // Adjust the map to fit all markers
+    // Add marker to the map's marker list
+    map.markers.push(marker);
+
     map.fitBounds(bounds);
 }
