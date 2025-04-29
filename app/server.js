@@ -408,6 +408,10 @@ app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
+app.get('/api/map-key', (req, res) => {
+  res.json({ apiKey: process.env.MAP_API_KEY });
+});
+
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

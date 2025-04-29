@@ -81,6 +81,7 @@ loadNavbar();
 
 // **Search Button Click Event**
 document.getElementById("search-btn").addEventListener("click", async function () {
+
     const filters = {
         address: document.getElementById("search-address").value,
         maxPrice: document.getElementById("search-max-price").value,
@@ -170,6 +171,7 @@ document.getElementById("search-btn").addEventListener("click", async function (
 
         resultsContainer.appendChild(leaseCard);
     });
+    initializeMap(results);
 });
 
 document.getElementById("filter-btn").addEventListener("click", function () {
@@ -191,3 +193,146 @@ document.getElementById("clear-filters").addEventListener("click", function () {
     document.querySelectorAll(".form-control, .form-select").forEach(input => input.value = "");
     document.querySelectorAll(".amenity").forEach(checkbox => checkbox.checked = false);
 });
+
+
+// Toggle functionality for switching between List View and Map View
+const toggleViewBtn = document.getElementById("toggle-view-btn");
+const listView = document.getElementById("list-view");
+const mapView = document.getElementById("map-view");
+let map;
+
+toggleViewBtn.addEventListener("click", () => {
+    // This will make the map view show up on search page if it isn't already shown.
+    if (mapView.classList.contains("d-none")) {
+        mapView.classList.remove("d-none");
+        listView.classList.add("d-none");
+        toggleViewBtn.textContent = "Switch to List View";
+        document.getElementById("search-btn").click();
+    } else {
+        // Brings back list view if already on map view. Also updates button text back
+        mapView.classList.add("d-none");
+        listView.classList.remove("d-none");
+        toggleViewBtn.textContent = "Switch to Map View";
+        document.getElementById("search-btn").click();
+    }
+});
+
+function initializeMap(filteredLeases) {
+    if (!map) {
+        map = new google.maps.Map(document.getElementById("map-view"), {
+            zoom: 12,
+        });
+    }
+
+    const bounds = new google.maps.LatLngBounds(); // Create bounds object
+
+    // Clear existing markers from the map
+    const markers = [];
+    map.markers?.forEach(marker => marker.setMap(null));
+    map.markers = markers;
+
+    const geocoder = new google.maps.Geocoder();
+
+    filteredLeases.forEach(lease => {
+        if (lease.latitude && lease.longitude) {
+            // If latitude and longitude are already available, use them
+            addMarker(lease.latitude, lease.longitude, lease, bounds);
+        } else if (lease.street && lease.city && lease.state && lease.zip_code) {
+            // If address is available, geocode it
+            const address = `${lease.street}, ${lease.city}, ${lease.state} ${lease.zip_code}`;
+            geocoder.geocode({ address: address }, (results, status) => {
+                if (status === "OK" && results[0]) {
+                    const location = results[0].geometry.location;
+                    addMarker(location.lat(), location.lng(), lease, bounds);
+                } else {
+                    console.error(`Geocoding failed for address: ${address}, status: ${status}`);
+                }
+            });
+        }
+    });
+
+    // Adjust the map to fit all markers
+    if (leases.length > 0) {
+        if (leases.length === 1) {
+            // Set a default zoom level when only one result is shown
+            map.setCenter(bounds.getCenter());
+            map.setZoom(1); // Adjust this zoom level as needed
+        } else {
+            map.fitBounds(bounds);
+        }
+    }
+}
+
+function addMarker(lat, lng, lease, bounds) {
+    const marker = new google.maps.Marker({
+        position: { lat: lat, lng: lng },
+        map: map,
+        title: lease.title,
+    });
+
+    let currentImageIndex = 0;
+
+    // Function to generate the content for the InfoWindow
+    const generateInfoWindowContent = () => {
+        const imageUrl = lease.images && lease.images.length > 0
+            ? lease.images[currentImageIndex]
+            : null;
+
+        const imageContent = imageUrl
+            ? `<img src="${imageUrl}" alt="Image ${currentImageIndex + 1}" style="width: 100%; height: auto; max-height: 150px; object-fit: cover; margin-bottom: 10px;">`
+            : "<p>No images available</p>";
+
+        const navigationButtons = lease.images && lease.images.length > 1
+            ? `
+                <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+                    <button id="prev-image" class="btn btn-sm btn-outline-primary">Previous</button>
+                    <button id="next-image" class="btn btn-sm btn-outline-primary">Next</button>
+                </div>
+            `
+            : "";
+
+        return `
+            ${imageContent}
+            ${navigationButtons}
+            <h6>${lease.title}</h6>
+            <p>${lease.street}, ${lease.city}, ${lease.state} ${lease.zip_code}</p>
+            <p><strong>Price:</strong> $${lease.price}/month</p>
+        `;
+    };
+
+    const infoWindow = new google.maps.InfoWindow({
+        content: generateInfoWindowContent(),
+    });
+
+    marker.addListener("click", () => {
+        infoWindow.open(map, marker);
+
+        // Add event listeners for navigation buttons every time the InfoWindow is rendered
+        google.maps.event.addListener(infoWindow, "domready", () => {
+            const prevButton = document.getElementById("prev-image");
+            const nextButton = document.getElementById("next-image");
+
+            if (prevButton) {
+                prevButton.addEventListener("click", () => {
+                    currentImageIndex = (currentImageIndex - 1 + lease.images.length) % lease.images.length;
+                    infoWindow.setContent(generateInfoWindowContent());
+                });
+            }
+
+            if (nextButton) {
+                nextButton.addEventListener("click", () => {
+                    currentImageIndex = (currentImageIndex + 1) % lease.images.length;
+                    infoWindow.setContent(generateInfoWindowContent());
+                });
+            }
+        });
+    });
+
+    // Extend the bounds to include this marker's position
+    bounds.extend({ lat: lat, lng: lng });
+
+    // Add marker to the map's marker list
+    map.markers.push(marker);
+
+    map.fitBounds(bounds);
+}
