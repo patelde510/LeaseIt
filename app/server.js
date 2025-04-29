@@ -20,7 +20,7 @@ const pool = new Pool({
   port: process.env.DB_PORT || 5432,
   // COMMENT OUT THE PART BELOW WHEN USING A LOCAL DATABASE
   ssl: {
-   rejectUnauthorized: false
+  rejectUnauthorized: false
   }
 });
 
@@ -258,21 +258,37 @@ app.post("/search-leases", async (req, res) => {
     let values = [];
     let counter = 1;
 
-    // **🔹 Address Filter (Zip, Street, City, State)**
+    
     if (address) {
-      if (/^\d{5}(-\d{4})?$/.test(address.trim())) {
-        query += ` AND a.zip_code = $${counter}`;
-        values.push(address.trim());
+      const addr = address.trim().toLowerCase();
+      const addrParts = addr.split(",").map(p => p.trim());
+    
+      if (addrParts.length === 2) {
+        
+        query += ` AND LOWER(a.city) LIKE $${counter} AND LOWER(a.state) LIKE $${counter + 1}`;
+        values.push(`%${addrParts[0]}%`);
+        values.push(`%${addrParts[1]}%`);
+        counter += 2;
+      } else if (addr.includes("st") || addr.includes("ave") || addr.includes("rd") || /\d/.test(addr)) {
+       
+        query += ` AND LOWER(a.street) LIKE $${counter}`;
+        values.push(`%${addr}%`);
+        counter++;
       } else {
-        query += ` AND (LOWER(a.street) ILIKE LOWER($${counter}) 
-                         OR LOWER(a.city) ILIKE LOWER($${counter}) 
-                         OR LOWER(a.state) ILIKE LOWER($${counter}))`;
-        values.push(`%${address.trim()}%`);
+       
+        query += ` AND (
+          LOWER(a.city) LIKE $${counter} OR 
+          LOWER(a.state) LIKE $${counter} OR 
+          LOWER(a.street) LIKE $${counter}
+        )`;
+        values.push(`%${addr}%`);
+        counter++;
       }
-      counter++;
     }
-
-    // **🔹 Fix: Exact Month & Year Matching**
+    
+    
+    
+    // Fix: Exact Month & Year Matching
     if (monthStart) {
       query += ` AND TO_CHAR(l.start_date, 'YYYY-MM') = $${counter}`;
       values.push(monthStart);
@@ -284,14 +300,14 @@ app.post("/search-leases", async (req, res) => {
       counter++;
     }
 
-    // **🔹 Max Price Filter**
+    // Max Price Filter
     if (maxPrice) {
       query += ` AND l.price <= $${counter}`;
       values.push(maxPrice);
       counter++;
     }
 
-    // **🔹 Bedrooms and Bathrooms**
+    // Bedrooms and Bathrooms
     if (bedrooms) {
       query += ` AND l.bedrooms = $${counter}`;
       values.push(bedrooms);
@@ -303,21 +319,21 @@ app.post("/search-leases", async (req, res) => {
       counter++;
     }
 
-    // **🔹 Property Type**
+    // Property Type
     if (propertyType) {
       query += ` AND LOWER(l.property_type) = LOWER($${counter})`;
       values.push(propertyType.toLowerCase());
       counter++;
     }
 
-    // **🔹 Shared Space Filter**
+    // Shared Space Filter
     if (sharedSpace) {
       query += ` AND l.shared_space = $${counter}`;
       values.push(sharedSpace === "yes");
       counter++;
     }
 
-    // **🔹 Furnished Filter**
+    // Furnished Filter
     if (furnished) {
       query += ` AND l.furnished = $${counter}`;
       values.push(furnished === "yes" ? true : false);
@@ -407,6 +423,41 @@ app.get('/search.js', (req, res) => {
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
 });
+
+app.get("/suggest-addresses", async (req, res) => {
+  try {
+    const input = req.query.q?.toLowerCase().trim();
+    if (!input || input.length < 2) {
+      return res.status(400).json({ error: "Query too short" });
+    }
+
+    const cityResults = await pool.query(`
+      SELECT DISTINCT CONCAT(city, ', ', state) AS suggestion
+      FROM addresses
+      WHERE LOWER(city) LIKE $1 OR LOWER(state) LIKE $1
+      LIMIT 5
+    `, [`%${input}%`]);
+
+    const streetResults = await pool.query(`
+      SELECT DISTINCT street AS suggestion
+      FROM addresses
+      WHERE LOWER(street) LIKE $1
+      LIMIT 5
+    `, [`%${input}%`]);
+
+    // Merge and remove duplicates
+    const allSuggestions = new Set([
+      ...cityResults.rows.map(r => r.suggestion),
+      ...streetResults.rows.map(r => r.suggestion)
+    ]);
+
+    res.json([...allSuggestions]);
+  } catch (err) {
+    console.error("Error suggesting addresses:", err);
+    res.status(500).json({ error: "Suggestion fetch failed" });
+  }
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
