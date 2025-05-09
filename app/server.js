@@ -258,21 +258,43 @@ app.post("/search-leases", async (req, res) => {
     let values = [];
     let counter = 1;
 
-    // **🔹 Address Filter (Zip, Street, City, State)**
     if (address) {
-      if (/^\d{5}(-\d{4})?$/.test(address.trim())) {
-        query += ` AND a.zip_code = $${counter}`;
-        values.push(address.trim());
+      const addr = address.trim().toLowerCase();
+      const parts = addr.split(",").map(p => p.trim());
+    
+      if (parts.length === 3) {
+        // Full address: street, city, state zip 
+        query += ` AND LOWER(a.street) LIKE $${counter}
+                   AND LOWER(a.city) LIKE $${counter + 1}
+                   AND LOWER(a.state) LIKE $${counter + 2}`;
+        values.push(`%${parts[0]}%`);
+        values.push(`%${parts[1]}%`);
+        values.push(`%${parts[2].split(" ")[0]}%`); // handles "PA 19446"
+        counter += 3;
+      } else if (parts.length === 2) {
+        // City, State
+        query += ` AND LOWER(a.city) LIKE $${counter}
+                   AND LOWER(a.state) LIKE $${counter + 1}`;
+        values.push(`%${parts[0]}%`);
+        values.push(`%${parts[1]}%`);
+        counter += 2;
       } else {
-        query += ` AND (LOWER(a.street) ILIKE LOWER($${counter}) 
-                         OR LOWER(a.city) ILIKE LOWER($${counter}) 
-                         OR LOWER(a.state) ILIKE LOWER($${counter}))`;
-        values.push(`%${address.trim()}%`);
+        // Generic partial match
+        query += ` AND (
+          LOWER(a.street) LIKE $${counter} OR 
+          LOWER(a.city) LIKE $${counter} OR 
+          LOWER(a.state) LIKE $${counter} OR
+          a.zip_code::text LIKE $${counter}
+        )`;
+        values.push(`%${addr}%`);
+        counter++;
       }
-      counter++;
     }
-
-    // **🔹 Fix: Exact Month & Year Matching**
+    
+    
+    
+    
+    // Fix: Exact Month & Year Matching
     if (monthStart) {
       query += ` AND TO_CHAR(l.start_date, 'YYYY-MM') = $${counter}`;
       values.push(monthStart);
@@ -284,14 +306,14 @@ app.post("/search-leases", async (req, res) => {
       counter++;
     }
 
-    // **🔹 Max Price Filter**
+    // Max Price Filter
     if (maxPrice) {
       query += ` AND l.price <= $${counter}`;
       values.push(maxPrice);
       counter++;
     }
 
-    // **🔹 Bedrooms and Bathrooms**
+    // Bedrooms and Bathrooms
     if (bedrooms) {
       query += ` AND l.bedrooms = $${counter}`;
       values.push(bedrooms);
@@ -303,21 +325,21 @@ app.post("/search-leases", async (req, res) => {
       counter++;
     }
 
-    // **🔹 Property Type**
+    // Property Type
     if (propertyType) {
       query += ` AND LOWER(l.property_type) = LOWER($${counter})`;
       values.push(propertyType.toLowerCase());
       counter++;
     }
 
-    // **🔹 Shared Space Filter**
+    // Shared Space Filter
     if (sharedSpace) {
       query += ` AND l.shared_space = $${counter}`;
       values.push(sharedSpace === "yes");
       counter++;
     }
 
-    // **🔹 Furnished Filter**
+    // Furnished Filter
     if (furnished) {
       query += ` AND l.furnished = $${counter}`;
       values.push(furnished === "yes" ? true : false);
@@ -411,6 +433,56 @@ app.get("/", (req, res) => {
 app.get('/api/map-key', (req, res) => {
   res.json({ apiKey: process.env.MAP_API_KEY });
 });
+
+app.get("/suggest-addresses", async (req, res) => {
+  try {
+    const input = req.query.q?.toLowerCase().trim();
+    if (!input || input.length < 2) {
+      return res.status(400).json({ error: "Query too short" });
+    }
+
+    // Normalize city+state suggestions
+    const cityStateResults = await pool.query(`
+      SELECT DISTINCT ON (
+        LOWER(REPLACE(CONCAT(city, ',', state), ' ', ''))
+      ) CONCAT(city, ', ', state) AS suggestion
+      FROM addresses
+      WHERE LOWER(city) LIKE $1 OR LOWER(state) LIKE $1
+      LIMIT 5
+    `, [`%${input}%`]);
+
+    // Normalize full address suggestions
+    const fullAddressResults = await pool.query(`
+      SELECT DISTINCT ON (
+        LOWER(REPLACE(CONCAT(street, city, state, zip_code), ' ', ''))
+      ) CONCAT(street, ', ', city, ', ', state, ' ', zip_code) AS suggestion
+      FROM addresses
+      WHERE LOWER(street) LIKE $1 OR LOWER(city) LIKE $1
+      LIMIT 5
+    `, [`%${input}%`]);
+
+    // Add zip code suggestions
+    const zipResults = await pool.query(`
+      SELECT DISTINCT zip_code AS suggestion
+      FROM addresses
+      WHERE zip_code LIKE $1
+      LIMIT 5
+    `, [`%${input}%`]);
+
+    // Merge all unique suggestions into a Set
+    const suggestions = new Set([
+      ...cityStateResults.rows.map(r => r.suggestion),
+      ...fullAddressResults.rows.map(r => r.suggestion),
+      ...zipResults.rows.map(r => r.suggestion)
+    ]);
+
+    res.json([...suggestions]);
+  } catch (err) {
+    console.error("Error suggesting addresses:", err);
+    res.status(500).json({ error: "Suggestion fetch failed" });
+  }
+});
+
 
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);

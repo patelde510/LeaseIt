@@ -194,6 +194,42 @@ document.getElementById("clear-filters").addEventListener("click", function () {
     document.querySelectorAll(".amenity").forEach(checkbox => checkbox.checked = false);
 });
 
+//  Autocomplete for search-address
+const searchInput = document.getElementById("search-address");
+ 
+const suggestionBox = document.createElement("div");
+suggestionBox.classList.add("autocomplete-box");
+searchInput.parentNode.appendChild(suggestionBox);
+
+searchInput.addEventListener("input", async () => {
+  const query = searchInput.value;
+  if (query.length < 2) {
+    suggestionBox.innerHTML = "";
+    return;
+  }
+
+  const res = await fetch(`/suggest-addresses?q=${encodeURIComponent(query)}`);
+  const suggestions = await res.json();
+
+  suggestionBox.innerHTML = "";
+  suggestions.forEach(suggestion => {
+    const item = document.createElement("div");
+    item.textContent = suggestion;
+    item.classList.add("autocomplete-item");
+    item.addEventListener("click", () => {
+      searchInput.value = suggestion;
+      suggestionBox.innerHTML = "";
+    });
+    suggestionBox.appendChild(item);
+  });
+});
+
+// Hide suggestions when clicking outside
+document.addEventListener("click", (e) => {
+  if (!suggestionBox.contains(e.target) && e.target !== searchInput) {
+    suggestionBox.innerHTML = "";
+  }
+});
 
 // Toggle functionality for switching between List View and Map View
 const toggleViewBtn = document.getElementById("toggle-view-btn");
