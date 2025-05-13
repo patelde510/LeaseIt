@@ -19,9 +19,9 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT || 5432,
   // COMMENT OUT THE PART BELOW WHEN USING A LOCAL DATABASE
-  ssl: {
-   rejectUnauthorized: false
-  }
+  // ssl: {
+  //  rejectUnauthorized: false
+  // }
 });
 
 
@@ -388,6 +388,258 @@ app.get("/all-leases", async (req, res) => {
   }
 });
 
+// API endpoint to add a lease to favorites
+app.post("/api/favorites/add", verifySession, async (req, res) => {
+  const { lease_id } = req.body;
+  const user_id = req.user.user_id;
+
+  if (!lease_id) {
+    return res.status(400).json({ error: "Lease ID is required." });
+  }
+
+  try {
+    const checkFavorite = await pool.query(
+      "SELECT * FROM favorites WHERE user_id = $1 AND lease_id = $2",
+      [user_id, lease_id]
+    );
+
+    if (checkFavorite.rows.length > 0) {
+      return res.status(409).json({ message: "Lease is already in favorites." });
+    }
+
+    await pool.query(
+      "INSERT INTO favorites (user_id, lease_id) VALUES ($1, $2)",
+      [user_id, lease_id]
+    );
+    res.status(201).json({ message: "Lease added to favorites." });
+  } catch (error) {
+    console.error("Error adding to favorites:", error);
+    res.status(500).json({ error: "Failed to add lease to favorites." });
+  }
+});
+
+// API endpoint to remove a lease from favorites
+app.delete("/api/favorites/remove", verifySession, async (req, res) => {
+  const { lease_id } = req.body;
+  const user_id = req.user.user_id;
+
+  if (!lease_id) {
+    return res.status(400).json({ error: "Lease ID is required." });
+  }
+
+  try {
+    const result = await pool.query(
+      "DELETE FROM favorites WHERE user_id = $1 AND lease_id = $2",
+      [user_id, lease_id]
+    );
+
+    if (result.rowCount > 0) {
+      res.json({ message: "Lease removed from favorites." });
+    } else {
+      res.status(404).json({ message: "Lease not found in your favorites." });
+    }
+  } catch (error) {
+    console.error("Error removing from favorites:", error);
+    res.status(500).json({ error: "Failed to remove lease from favorites." });
+  }
+});
+
+// API endpoint to get the current user's favorite leases
+app.get("/api/favorites", verifySession, async (req, res) => {
+  const user_id = req.user.user_id;
+
+  try {
+    const result = await pool.query(`
+      SELECT l.lease_id, l.title, l.price, l.bedrooms, l.bathrooms,
+             a.street, a.city, a.state, a.zip_code,
+             TO_CHAR(l.start_date, 'Month<ctrl3348>') || ' to ' || TO_CHAR(l.end_date, 'Month<ctrl3348>') AS lease_duration,
+             ARRAY_AGG(DISTINCT li.image_url) FILTER (WHERE li.image_url IS NOT NULL) AS images,
+             ARRAY_AGG(DISTINCT am.amenity) FILTER (WHERE am.amenity IS NOT NULL) AS amenities
+      FROM favorites f
+      JOIN leases l ON f.lease_id = l.lease_id
+      JOIN addresses a ON l.lease_id = a.lease_id
+      LEFT JOIN lease_images li ON l.lease_id = li.lease_id
+      LEFT JOIN amenities am ON l.lease_id = am.lease_id
+      WHERE f.user_id = $1
+      GROUP BY l.lease_id, l.title, l.price, l.bedrooms, l.bathrooms,
+               a.street, a.city, a.state, a.zip_code, lease_duration
+      ORDER BY l.price ASC;
+    `, [user_id]);
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Error fetching favorite leases:", error);
+    res.status(500).json({ error: "Failed to fetch favorite leases." });
+  }
+});
+
+// Update /search-leases to return if a lease is favorited
+app.post("/search-leases", verifySession, async (req, res) => {
+  try {
+    const {
+      address, monthStart, monthEnd, maxPrice,
+      bedrooms, bathrooms, propertyType, sharedSpace, furnished,
+      bathroomType, amenities
+    } = req.body;
+
+    let query = `
+      SELECT l.lease_id, l.title, l.price, l.bedrooms, l.bathrooms,
+             a.street, a.city, a.state, a.zip_code,
+             TO_CHAR(l.start_date, 'Month<ctrl3348>') || ' to ' || TO_CHAR(l.end_date, 'Month<ctrl3348>') AS lease_duration,
+             ARRAY_AGG(DISTINCT li.image_url) FILTER (WHERE li.image_url IS NOT NULL) AS images,
+             ARRAY_AGG(DISTINCT am.amenity) FILTER (WHERE am.amenity IS NOT NULL) AS amenities,
+             CASE WHEN EXISTS (SELECT 1 FROM favorites WHERE user_id = $${values.length + 1} AND lease_id = l.lease_id) THEN true ELSE false END AS is_favorite
+      FROM leases l
+      JOIN addresses a ON l.lease_id = a.lease_id
+      LEFT JOIN lease_images li ON l.lease_id = li.lease_id
+      LEFT JOIN amenities am ON l.lease_id = am.lease_id
+      WHERE 1=1
+    `;
+
+    let values = [];
+    let counter = 1;
+    const user_id = req.user ? req.user.user_id : null; // Get user ID if logged in
+
+    // **🔹 Address Filter (Zip, Street, City, State)**
+    if (address) {
+      if (/^\d{5}(-\d{4})?$/.test(address.trim())) {
+        query += ` AND a.zip_code = $${counter}`;
+        values.push(address.trim());
+      } else {
+        query += ` AND (LOWER(a.street) ILIKE LOWER($${counter})
+                         OR LOWER(a.city) ILIKE LOWER($${counter})
+                         OR LOWER(a.state) ILIKE LOWER($${counter}))`;
+        values.push(`%${address.trim()}%`);
+      }
+      counter++;
+    }
+
+    // **🔹 Fix: Exact Month & Year Matching**
+    if (monthStart) {
+      query += ` AND TO_CHAR(l.start_date, 'YYYY-MM') = $${counter}`;
+      values.push(monthStart);
+      counter++;
+    }
+    if (monthEnd) {
+      query += ` AND TO_CHAR(l.end_date, 'YYYY-MM') = $${counter}`;
+      values.push(monthEnd);
+      counter++;
+    }
+
+    // **🔹 Max Price Filter**
+    if (maxPrice) {
+      query += ` AND l.price <= $${counter}`;
+      values.push(maxPrice);
+      counter++;
+    }
+
+    // **🔹 Bedrooms and Bathrooms**
+    if (bedrooms) {
+      query += ` AND l.bedrooms = $${counter}`;
+      values.push(bedrooms);
+      counter++;
+    }
+    if (bathrooms) {
+      query += ` AND l.bathrooms = $${counter}`;
+      values.push(bathrooms);
+      counter++;
+    }
+
+    // **🔹 Property Type**
+    if (propertyType) {
+      query += ` AND LOWER(l.property_type) = LOWER($${counter})`;
+      values.push(propertyType.toLowerCase());
+      counter++;
+    }
+
+    // **🔹 Shared Space Filter**
+    if (sharedSpace) {
+      query += ` AND l.shared_space = $${counter}`;
+      values.push(sharedSpace === "yes");
+      counter++;
+    }
+
+    // **🔹 Furnished Filter**
+    if (furnished) {
+      query += ` AND l.furnished = $${counter}`;
+      values.push(furnished === "yes" ? true : false);
+      counter++;
+    }
+
+    // **🔹 Bathroom Type Filter**
+    if (bathroomType) {
+      query += ` AND LOWER(l.bathroom_type) = LOWER($${counter})`;
+      values.push(bathroomType.toLowerCase());
+      counter++;
+    }
+
+    // **🔹 Fixed Amenities Filtering**
+    if (amenities && amenities.length > 0) {
+      const formattedAmenities = amenities.map(a =>
+        a.toLowerCase().replace(/\s+/g, "-").replace("/", "-")
+      );
+
+      query += ` AND l.lease_id IN (
+          SELECT lease_id FROM amenities
+          WHERE LOWER(amenity) = ANY($${counter})
+          GROUP BY lease_id
+          HAVING COUNT(DISTINCT amenity) >= $${counter + 1}
+        )`;
+      values.push(formattedAmenities);
+      values.push(formattedAmenities.length);
+      counter += 2;
+    }
+
+    // **🔹 Grouping & Ordering**
+    query += `
+      GROUP BY l.lease_id, l.title, l.price, l.bedrooms, l.bathrooms,
+               a.street, a.city, a.state, a.zip_code, lease_duration
+      ORDER BY l.price ASC;
+    `;
+
+    if (user_id) {
+      values.push(user_id); // Add user_id for the is_favorite check
+    } else {
+      query = query.replace(/user_id = \$\d+ AND /, ''); // Remove user_id condition if not logged in
+    }
+
+    const result = await pool.query(query, values);
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Error fetching leases:", error);
+    res.status(500).json({ error: "Server error fetching leases" });
+  }
+});
+
+// Update /all-leases to return if a lease is favorited
+app.get("/all-leases", verifySession, async (req, res) => {
+  try {
+    let query = `
+      SELECT l.lease_id, l.title, l.price, l.bedrooms, l.bathrooms,
+             a.street, a.city, a.state, a.zip_code,
+             TO_CHAR(l.start_date, 'Month<ctrl3348>') || ' to ' || TO_CHAR(l.end_date, 'Month<ctrl3348>') AS lease_duration,
+             ARRAY_AGG(DISTINCT li.image_url) FILTER (WHERE li.image_url IS NOT NULL) AS images,
+             ARRAY_AGG(DISTINCT am.amenity) FILTER (WHERE am.amenity IS NOT NULL) AS amenities,
+             CASE WHEN EXISTS (SELECT 1 FROM favorites WHERE user_id = $1 AND lease_id = l.lease_id) THEN true ELSE false END AS is_favorite
+      FROM leases l
+      JOIN addresses a ON l.lease_id = a.lease_id
+      LEFT JOIN lease_images li ON l.lease_id = li.lease_id
+      LEFT JOIN amenities am ON l.lease_id = am.lease_id
+      GROUP BY l.lease_id, l.title, l.price, l.bedrooms, l.bathrooms,
+               a.street, a.city, a.state, a.zip_code, lease_duration
+      ORDER BY l.price ASC;
+    `;
+
+    const user_id = req.user ? req.user.user_id : null;
+    const values = user_id ? [user_id] : [];
+
+    const result = await pool.query(query, values);
+    res.json(result.rows);
+  } catch (error) {
+    console.error("Error fetching leases:", error);
+    res.status(500).json({ error: "Server error fetching leases" });
+  }
+});
+
 app.get("/login", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "login.html"));
 });
@@ -410,6 +662,10 @@ app.get("/", (req, res) => {
 
 app.get('/api/map-key', (req, res) => {
   res.json({ apiKey: process.env.MAP_API_KEY });
+});
+
+app.get('/favorites.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'favorites.js'));
 });
 
 app.listen(PORT, () => {

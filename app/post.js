@@ -70,7 +70,7 @@ document.getElementById("bathrooms").addEventListener("input", function () {
 
 // Phone number validation (format: 123-456-7890)
 document.getElementById("phone").addEventListener("input", function () {
-    validateInput(this, /^\d{3}-\d{3}-\d{4}$/.test(this.value));
+    validateInput(this, /^[\d\s()-]+$/.test(this.value));
 });
 
 // Email validation (must contain "@" and ".")
