@@ -1,14 +1,23 @@
+async function checkLoginStatus() {
+    try {
+        const response = await fetch('/checkSession');
+        return response.ok;
+    } catch (error) {
+        console.error("Error checking session:", error);
+        return false;
+    }
+}
+
 async function fetchAllLeases() {
     const response = await fetch("/all-leases");
     const leases = await response.json();
     const resultsContainer = document.getElementById("search-results");
     resultsContainer.innerHTML = "";
+    const isLoggedIn = await checkLoginStatus();
+    renderLeases(leases, resultsContainer, isLoggedIn);
+}
 
-    if (leases.length === 0) {
-        resultsContainer.innerHTML = "<p class='text-center'>No listings found.</p>";
-        return;
-    }
-
+async function renderLeases(leases, container, isLoggedIn) {
     leases.forEach((lease, index) => {
         const leaseCard = document.createElement("div");
         leaseCard.classList.add("col-lg-3", "col-md-4", "col-sm-6", "mb-3");
@@ -37,51 +46,77 @@ async function fetchAllLeases() {
         let displayedAmenities = lease.amenities ? lease.amenities.slice(0, 2).join(", ") : "None listed";
         if (lease.amenities.length > 2) displayedAmenities += " ...";
 
-        leaseCard.innerHTML = `
-    <div class="card lease-card">
-        <div id="${carouselId}" class="carousel slide lease-image-container ${hideArrows}" data-bs-ride="carousel">
-            <div class="carousel-inner">
-                ${carouselInner}
-            </div>
-            <button class="carousel-control-prev" type="button" data-bs-target="#${carouselId}" data-bs-slide="prev">
-                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#${carouselId}" data-bs-slide="next">
-                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            </button>
-        </div>
-        <div class="card-body d-flex flex-column">
-            <h6 class="card-title text-truncate" title="${lease.title}">${lease.title}</h6>
-            <p class="text-muted extra-small text-truncate" title="${lease.street}, ${lease.city}, ${lease.state} ${lease.zip_code}">
-                ${lease.street}, ${lease.city}, ${lease.state} ${lease.zip_code}
-            </p>
-            <p class="extra-small"><strong>Lease Duration:</strong> ${lease.lease_duration}</p>
-            <p class="extra-small text-truncate" title="${lease.amenities.join(', ')}">
-                <strong>Amenities:</strong> ${displayedAmenities}
-            </p>
-            <div class="mt-auto">
-                <p class="rent-price text-success"><strong>$${lease.price}/month</strong></p>
-                <a href="#" class="btn btn-apply view-btn btn-primary btn-sm w-100">View Listing</a>
-            </div>
-        </div>
-    </div>
-`;
+        let favoritesButtonHTML = '';
+        if (isLoggedIn) {
+            favoritesButtonHTML = `
+                <button class="btn btn-sm btn-outline-primary add-to-favorites-btn mb-2" data-lease-id="${lease.lease_id}">
+                    <i class="fa-regular fa-star"></i>
+                </button>
+            `;
+        }
 
-        resultsContainer.appendChild(leaseCard);
+        leaseCard.innerHTML = `
+        <div class="card lease-card">
+            <div id="${carouselId}" class="carousel slide lease-image-container ${hideArrows}" data-bs-ride="carousel">
+                <div class="carousel-inner">
+                    ${carouselInner}
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#${carouselId}" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#${carouselId}" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                </button>
+            </div>
+            <div class="card-body d-flex flex-column">
+                <h6 class="card-title text-truncate" title="${lease.title}">${lease.title}</h6>
+                <p class="text-muted extra-small text-truncate" title="${lease.street}, ${lease.city}, ${lease.state} ${lease.zip_code}">
+                    ${lease.street}, ${lease.city}, ${lease.state} ${lease.zip_code}
+                </p>
+                <p class="extra-small"><strong>Lease Duration:</strong> ${lease.lease_duration}</p>
+                <p class="extra-small text-truncate" title="${lease.amenities.join(', ')}">
+                    <strong>Amenities:</strong> ${displayedAmenities}
+                </p>
+                <div class="mt-auto d-flex flex-column align-items-start">
+                    <p class="rent-price text-success"><strong>$${lease.price}/month</strong></p>
+                    ${favoritesButtonHTML}
+                    <a href="#" class="btn btn-apply view-btn btn-primary btn-sm w-100">View Listing</a>
+                </div>
+            </div>
+        </div>
+    `;
+
+        container.appendChild(leaseCard);
     });
+    if (container.id === "search-results") {
+        initializeMap(leases);
+    }
 }
+
 fetchAllLeases();
 
 async function loadNavbar() {
     const response = await fetch("navbar.html");
     const navbarHTML = await response.text();
     document.getElementById("navbar-placeholder").innerHTML = navbarHTML;
+    await updateNavbarVisibility();
 }
 loadNavbar();
 
-// **Search Button Click Event**
-document.getElementById("search-btn").addEventListener("click", async function () {
+async function updateNavbarVisibility() {
+    const isLoggedIn = await checkLoginStatus();
+    const favoritesTab = document.getElementById('favorites-tab');
 
+    if (favoritesTab) {
+        if (isLoggedIn) {
+            favoritesTab.style.display = 'block';
+        } else {
+            favoritesTab.style.display = 'none';
+        }
+    }
+}
+
+document.getElementById("search-btn").addEventListener("click", async function () {
     const filters = {
         address: document.getElementById("search-address").value,
         maxPrice: document.getElementById("search-max-price").value,
@@ -105,73 +140,44 @@ document.getElementById("search-btn").addEventListener("click", async function (
     const results = await response.json();
     const resultsContainer = document.getElementById("search-results");
     resultsContainer.innerHTML = "";
+    const isLoggedIn = await checkLoginStatus();
+    renderLeases(results, resultsContainer, isLoggedIn);
+});
 
-    if (results.length === 0) {
-        resultsContainer.innerHTML = "<p class='text-center'>No listings found.</p>";
-        return;
-    }
-
-    results.forEach((lease, index) => {
-        const leaseCard = document.createElement("div");
-        leaseCard.classList.add("col-lg-3", "col-md-4", "col-sm-6", "mb-3");
-
-        let carouselId = `carousel-${index}`;
-        let carouselInner = "";
-        let hideArrows = "";
-
-        if (lease.images && lease.images.length > 0) {
-            lease.images.forEach((image, i) => {
-                carouselInner += `
-            <div class="carousel-item ${i === 0 ? 'active' : ''}">
-                <img src="${image}" class="d-block w-100 lease-image" alt="Lease Image">
-            </div>
-        `;
-            });
-        } else {
-            carouselInner = `
-        <div class="carousel-item active">
-            <div class="no-image">No Image Available</div>
-        </div>
-    `;
-            hideArrows = "hide-arrows";
+document.addEventListener('click', async function(event) {
+    if (event.target.classList.contains('add-to-favorites-btn')) {
+        const button = event.target;
+        const leaseId = button.dataset.leaseId;
+        const isLoggedIn = await checkLoginStatus();
+        if (!isLoggedIn) {
+            alert('You must be logged in to add to favorites.');
+            return;
         }
+        if (leaseId) {
+            try {
+                const response = await fetch('/api/favorites/add', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ lease_id: leaseId })
+                });
 
-        let displayedAmenities = lease.amenities ? lease.amenities.slice(0, 2).join(", ") : "None listed";
-        if (lease.amenities.length > 2) displayedAmenities += " ...";
-
-        leaseCard.innerHTML = `
-    <div class="card lease-card">
-        <div id="${carouselId}" class="carousel slide lease-image-container ${hideArrows}" data-bs-ride="carousel">
-            <div class="carousel-inner">
-                ${carouselInner}
-            </div>
-            <button class="carousel-control-prev" type="button" data-bs-target="#${carouselId}" data-bs-slide="prev">
-                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-            </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#${carouselId}" data-bs-slide="next">
-                <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            </button>
-        </div>
-        <div class="card-body d-flex flex-column">
-            <h6 class="card-title text-truncate" title="${lease.title}">${lease.title}</h6>
-            <p class="text-muted extra-small text-truncate" title="${lease.street}, ${lease.city}, ${lease.state} ${lease.zip_code}">
-                ${lease.street}, ${lease.city}, ${lease.state} ${lease.zip_code}
-            </p>
-            <p class="extra-small"><strong>Lease Duration:</strong> ${lease.lease_duration}</p>
-            <p class="extra-small text-truncate" title="${lease.amenities.join(', ')}">
-                <strong>Amenities:</strong> ${displayedAmenities}
-            </p>
-            <div class="mt-auto">
-                <p class="rent-price text-success"><strong>$${lease.price}/month</strong></p>
-                <a href="#" class="btn view-btn btn-primary btn-sm w-100">View Listing</a>
-            </div>
-        </div>
-    </div>
-`;
-
-        resultsContainer.appendChild(leaseCard);
-    });
-    initializeMap(results);
+                if (response.ok) {
+                    alert('Added to favorites!');
+                    button.innerHTML = '<i class="fa-solid fa-star"></i>';
+                    button.classList.remove('btn-outline-primary');
+                    button.classList.add('btn-primary', 'disabled');
+                } else {
+                    const errorData = await response.json();
+                    alert(errorData.message || 'Failed to add to favorites.');
+                }
+            } catch (error) {
+                console.error('Error adding to favorites:', error);
+                alert('An error occurred while adding to favorites.');
+            }
+        }
+    }
 });
 
 document.getElementById("filter-btn").addEventListener("click", function () {
