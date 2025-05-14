@@ -25,7 +25,7 @@
                         <input type="text" id="search-address" class="form-control"
                             placeholder="Street, City, State, Zip Code">
                         <div id="autocomplete-results" class="autocomplete-list d-none"></div>
-                      </div>                      
+                    </div>
                 </div>
                 <div class="col-md-2">
                     <label for="search-month-start" class="form-label">Start Date</label>
@@ -149,6 +149,75 @@
         <button id="toggle-view-btn" class="btn btn-outline-primary">Switch to Map View</button>
     </div>
 
+    <div class="modal fade" id="listingModal" tabindex="-1">
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content rounded-0">
+                <div class="modal-header">
+                    <h4 class="modal-title fw-bold" id="modal-title"></h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 pb-4">
+                    <!-- Gallery -->
+                    <div class="row mb-4" id="image-preview-section">
+                        <div class="col-lg-9 col-md-8 col-12" id="main-preview-column">
+                            <img id="main-preview-image" src="" class="img-fluid rounded main-preview-img" />
+                        </div>
+                        <div class="col-lg-3 col-md-4 col-12 d-flex flex-column gap-2" id="thumbnail-gallery">
+                            <!-- thumbnails injected here -->
+                        </div>
+                    </div>
+
+
+                    <!-- Info Section -->
+                    <!-- Info Section with Icons -->
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <p><i class="fas fa-map-marker-alt me-2 text-muted"></i><strong>Address:</strong> <span
+                                    id="modal-address"></span></p>
+                            <p><i class="fas fa-calendar-alt me-2 text-muted"></i><strong>Lease Duration:</strong> <span
+                                    id="modal-duration"></span></p>
+                            <p><i class="fas fa-dollar-sign me-2 text-muted"></i><strong>Price:</strong> $<span
+                                    id="modal-price"></span>/month</p>
+                            <p><i class="fas fa-bed me-2 text-muted"></i><strong>Bedrooms:</strong> <span
+                                    id="modal-bedrooms"></span></p>
+                            <p><i class="fas fa-bath me-2 text-muted"></i><strong>Bathrooms:</strong> <span
+                                    id="modal-bathrooms"></span></p>
+                        </div>
+
+                        <div class="col-md-6 mb-3">
+                            <p><i class="fas fa-building me-2 text-muted"></i><strong>Property Type:</strong> <span
+                                    id="modal-property-type"></span></p>
+                            <p><i class="fas fa-users me-2 text-muted"></i><strong>Shared Space:</strong> <span
+                                    id="modal-shared-space"></span></p>
+                            <p><i class="fas fa-couch me-2 text-muted"></i><strong>Furnished:</strong> <span
+                                    id="modal-furnished"></span></p>
+                            <p><i class="fas fa-toilet me-2 text-muted"></i><strong>Bathroom Type:</strong> <span
+                                    id="modal-bathroom-type"></span></p>
+                            <p><i class="fas fa-check-circle me-2 text-muted"></i><strong>Amenities:</strong> <span
+                                    id="modal-amenities"></span></p>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <!-- Contact Section -->
+                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div>
+                            <h5><i class="fas fa-envelope me-2 text-muted"></i>Contact This Property</h5>
+                            <p><strong>Email:</strong> <a id="modal-email-link"></a></p>
+                        </div>
+                        <div>
+                            <a id="modal-email-button" class="btn btn-primary" target="_blank">
+                                <i class="fas fa-paper-plane me-1"></i> Send Email
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <footer class="footer mt-5">
         <p>&copy; 2025 Lease-It. All rights reserved.</p>
@@ -170,4 +239,5 @@
             .catch(error => console.error('Error fetching the API key:', error));
     </script>
 </body>
+
 </html>

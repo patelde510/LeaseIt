@@ -28,6 +28,8 @@ CREATE TABLE leases (
     bathroom_type VARCHAR(20) CHECK (bathroom_type IN ('private', 'shared')),
     bedrooms INT NOT NULL CHECK (bedrooms >= 0),
     bathrooms INT NOT NULL CHECK (bathrooms >= 0),
+    phone VARCHAR(20),
+    email VARCHAR(100),
     status VARCHAR(20) DEFAULT 'available' CHECK (status IN ('available', 'taken', 'pending')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
@@ -59,4 +61,13 @@ CREATE TABLE lease_images (
     lease_id INT REFERENCES leases(lease_id) ON DELETE CASCADE,
     image_url TEXT NOT NULL,
     uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE favorites (
+    favorite_id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    user_id INTEGER NOT NULL,
+    lease_id INTEGER NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES public.users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (lease_id) REFERENCES public.leases(lease_id) ON DELETE CASCADE,
+    UNIQUE (user_id, lease_id)
 );
