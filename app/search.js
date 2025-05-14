@@ -15,7 +15,78 @@ async function fetchAllLeases() {
     resultsContainer.innerHTML = "";
     const isLoggedIn = await checkLoginStatus();
     renderLeases(leases, resultsContainer, isLoggedIn);
+
+    setTimeout(() => {
+        document.querySelectorAll(".view-btn").forEach((btn, i) => {
+            btn.addEventListener("click", () => {
+                const lease = leases[i]; // get correct lease object
+
+                // Fill modal fields
+                document.getElementById("modal-title").textContent = lease.title;
+                document.getElementById("modal-address").textContent = `${lease.street}, ${lease.city}, ${lease.state} ${lease.zip_code}`;
+                document.getElementById("modal-duration").textContent = lease.lease_duration;
+                document.getElementById("modal-price").textContent = lease.price;
+                document.getElementById("modal-bedrooms").textContent = lease.bedrooms;
+                document.getElementById("modal-bathrooms").textContent = lease.bathrooms;
+                document.getElementById("modal-property-type").textContent = lease.property_type;
+                document.getElementById("modal-shared-space").textContent = lease.shared_space ? "Yes" : "No";
+                document.getElementById("modal-furnished").textContent = lease.furnished ? "Yes" : "No";
+                document.getElementById("modal-bathroom-type").textContent = lease.bathroom_type;
+                document.getElementById("modal-amenities").textContent = lease.amenities.join(", ");
+                document.getElementById("modal-email-link").textContent = lease.email;
+                document.getElementById("modal-email-button").href = `mailto:${lease.email}`;
+
+
+                // Set image preview and thumbnails
+                const mainImg = document.getElementById("main-preview-image");
+                const thumbContainer = document.getElementById("thumbnail-gallery");
+                const mainCol = document.getElementById("main-preview-column");
+
+                thumbContainer.innerHTML = "";
+                mainCol.className = "col-lg-9 col-md-8 col-12"; // reset default width
+
+                const validImages = (lease.images || []).filter(img => img && img.trim() !== "");
+
+                if (validImages.length > 0) {
+                    mainImg.src = validImages[0];
+                    mainImg.alt = "Preview Image";
+
+                    thumbContainer.style.display = "flex";
+                    mainCol.className = "col-lg-9 col-md-8 col-12";
+
+                    validImages.forEach((imgUrl, idx) => {
+                        const thumb = document.createElement("img");
+                        thumb.src = imgUrl;
+                        if (idx === 0) thumb.classList.add("active-thumb");
+
+                        thumb.addEventListener("click", () => {
+                            mainImg.src = imgUrl;
+                            document.querySelectorAll("#thumbnail-gallery img").forEach(img => img.classList.remove("active-thumb"));
+                            thumb.classList.add("active-thumb");
+                        });
+
+                        thumbContainer.appendChild(thumb);
+                    });
+                } else {
+                    mainImg.src = "images/no-image.png";
+                    mainImg.alt = "No Image Available";
+
+                    // Hide the thumbnails and expand main image column
+                    thumbContainer.style.display = "none";
+                    mainCol.className = "col-12";
+                }
+
+                const modal = new bootstrap.Modal(document.getElementById("listingModal"));
+                modal.show();
+            });
+        });
+    }, 0);
+
 }
+
+document.getElementById("listingModal").addEventListener("hidden.bs.modal", function () {
+    document.body.classList.remove("modal-open");
+});
 
 async function renderLeases(leases, container, isLoggedIn) {
     leases.forEach((lease, index) => {
@@ -80,7 +151,7 @@ async function renderLeases(leases, container, isLoggedIn) {
                 <div class="mt-auto d-flex flex-column align-items-start">
                     <p class="rent-price text-success"><strong>$${lease.price}/month</strong></p>
                     ${favoritesButtonHTML}
-                    <a href="#" class="btn btn-apply view-btn btn-primary btn-sm w-100">View Listing</a>
+                    <a class="btn btn-apply view-btn btn-primary btn-sm w-100">View Listing</a>
                 </div>
             </div>
         </div>
@@ -144,7 +215,7 @@ document.getElementById("search-btn").addEventListener("click", async function (
     renderLeases(results, resultsContainer, isLoggedIn);
 });
 
-document.addEventListener('click', async function(event) {
+document.addEventListener('click', async function (event) {
     if (event.target.classList.contains('add-to-favorites-btn')) {
         const button = event.target;
         const leaseId = button.dataset.leaseId;
@@ -184,6 +255,7 @@ document.getElementById("filter-btn").addEventListener("click", function () {
     new bootstrap.Modal(document.getElementById("filterModal")).show();
 });
 
+
 document.getElementById("apply-filters").addEventListener("click", function () {
     const modal = bootstrap.Modal.getInstance(document.getElementById("filterModal"));
     modal.hide();
@@ -202,39 +274,39 @@ document.getElementById("clear-filters").addEventListener("click", function () {
 
 //  Autocomplete for search-address
 const searchInput = document.getElementById("search-address");
- 
+
 const suggestionBox = document.createElement("div");
 suggestionBox.classList.add("autocomplete-box");
 searchInput.parentNode.appendChild(suggestionBox);
 
 searchInput.addEventListener("input", async () => {
-  const query = searchInput.value;
-  if (query.length < 2) {
+    const query = searchInput.value;
+    if (query.length < 2) {
+        suggestionBox.innerHTML = "";
+        return;
+    }
+
+    const res = await fetch(`/suggest-addresses?q=${encodeURIComponent(query)}`);
+    const suggestions = await res.json();
+
     suggestionBox.innerHTML = "";
-    return;
-  }
-
-  const res = await fetch(`/suggest-addresses?q=${encodeURIComponent(query)}`);
-  const suggestions = await res.json();
-
-  suggestionBox.innerHTML = "";
-  suggestions.forEach(suggestion => {
-    const item = document.createElement("div");
-    item.textContent = suggestion;
-    item.classList.add("autocomplete-item");
-    item.addEventListener("click", () => {
-      searchInput.value = suggestion;
-      suggestionBox.innerHTML = "";
+    suggestions.forEach(suggestion => {
+        const item = document.createElement("div");
+        item.textContent = suggestion;
+        item.classList.add("autocomplete-item");
+        item.addEventListener("click", () => {
+            searchInput.value = suggestion;
+            suggestionBox.innerHTML = "";
+        });
+        suggestionBox.appendChild(item);
     });
-    suggestionBox.appendChild(item);
-  });
 });
 
 // Hide suggestions when clicking outside
 document.addEventListener("click", (e) => {
-  if (!suggestionBox.contains(e.target) && e.target !== searchInput) {
-    suggestionBox.innerHTML = "";
-  }
+    if (!suggestionBox.contains(e.target) && e.target !== searchInput) {
+        suggestionBox.innerHTML = "";
+    }
 });
 
 // Toggle functionality for switching between List View and Map View

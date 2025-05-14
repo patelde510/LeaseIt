@@ -185,12 +185,12 @@ app.post("/post-lease", verifySession, upload.array("images", 10), async (req, r
 
     const leaseResult = await pool.query(`
       INSERT INTO leases (user_id, title, description, price, start_date, end_date, 
-          property_type, shared_space, furnished, bathroom_type, bedrooms, bathrooms, 
+          property_type, shared_space, furnished, bathroom_type, bedrooms, bathrooms, phone, email
           status)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'available')
       RETURNING lease_id
     `, [user_id, title, description, price, start_date, end_date, property_type,
-      shared_space, furnished, bathroom_type, bedrooms, bathrooms]);
+      shared_space, furnished, bathroom_type, bedrooms, bathrooms, phone, email]);
 
     const lease_id = leaseResult.rows[0].lease_id;
 
@@ -388,17 +388,21 @@ app.post("/search-leases", async (req, res) => {
 app.get("/all-leases", async (req, res) => {
   try {
     const query = `
-      SELECT l.lease_id, l.title, l.price, l.bedrooms, l.bathrooms, 
-             a.street, a.city, a.state, a.zip_code,
-             TO_CHAR(l.start_date, 'Month YYYY') || ' to ' || TO_CHAR(l.end_date, 'Month YYYY') AS lease_duration,
-             ARRAY_AGG(DISTINCT li.image_url) FILTER (WHERE li.image_url IS NOT NULL) AS images,
-             ARRAY_AGG(DISTINCT am.amenity) FILTER (WHERE am.amenity IS NOT NULL) AS amenities
+      SELECT 
+        l.lease_id, l.title, l.price, l.bedrooms, l.bathrooms, 
+        l.property_type, l.shared_space, l.furnished, l.bathroom_type, l.email,
+        a.street, a.city, a.state, a.zip_code,
+        TO_CHAR(l.start_date, 'Month YYYY') || ' to ' || TO_CHAR(l.end_date, 'Month YYYY') AS lease_duration,
+        ARRAY_AGG(DISTINCT li.image_url) FILTER (WHERE li.image_url IS NOT NULL) AS images,
+        ARRAY_AGG(DISTINCT am.amenity) FILTER (WHERE am.amenity IS NOT NULL) AS amenities
       FROM leases l
       JOIN addresses a ON l.lease_id = a.lease_id
       LEFT JOIN lease_images li ON l.lease_id = li.lease_id
       LEFT JOIN amenities am ON l.lease_id = am.lease_id
-      GROUP BY l.lease_id, l.title, l.price, l.bedrooms, l.bathrooms, 
-               a.street, a.city, a.state, a.zip_code, lease_duration
+      GROUP BY 
+        l.lease_id, l.title, l.price, l.bedrooms, l.bathrooms,
+        l.property_type, l.shared_space, l.furnished, l.bathroom_type, l.email,
+        a.street, a.city, a.state, a.zip_code, lease_duration
       ORDER BY l.price ASC;
     `;
 

@@ -35,7 +35,6 @@
     color: black;
     text-align: center;
     font-weight: bold;
-
 }
 
 .carousel-control-prev,
@@ -103,6 +102,16 @@
     border: white;
 }
 
+#modal-email-button {
+    background-color: #004953;
+    border: black;
+}
+
+#modal-email-button:hover {
+    background: rgba(20, 159, 141, 0.302);
+    border: white;
+}
+
 .search-container {
     border-radius: 40px;
     padding: 25px 20px 35px 20px;
@@ -123,6 +132,7 @@
     width: 100%;
     height: 500px;
 }
+
 .d-none {
     display: none !important;
 }
@@ -146,4 +156,91 @@
 
 .autocomplete-item:hover {
     background-color: #f0f0f0;
+}
+
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.5) !important;
+    backdrop-filter: blur(2px);
+}
+
+.modal-dialog {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    max-width: 100%;
+}
+
+.modal-content {
+    height: 100%;
+    overflow: hidden;
+}
+
+.modal-header,
+.modal-body {
+    background-color: #ffffff;
+}
+
+.modal-body {
+    overflow-y: auto; /* Allow scrolling if content overflows */
+    padding: 20px;
+}
+.main-preview-img {
+    width: 100%;
+    height: auto;
+    max-height: 400px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+  
+  #thumbnail-gallery {
+    max-height: 400px;              /* Match the main image height */
+    overflow-y: auto;               /* Enable scroll if too many thumbnails */
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-right: 4px;             /* Optional for scrollbar spacing */
+  }
+  
+  #thumbnail-gallery img {
+    width: 100%;
+    aspect-ratio: 4 / 3;            /* Keep consistent image ratio */
+    object-fit: cover;
+    border-radius: 6px;
+    border: 2px solid transparent;
+    cursor: pointer;
+    transition: border 0.2s;
+  }
+  
+  #thumbnail-gallery img:hover,
+  #thumbnail-gallery img.active-thumb {
+    border-color: #004953;
+  }
+  
+#modal-carousel .carousel-inner img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0; /* Remove border radius for fullscreen */
+}
+
+.carousel-item-no-image {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 80%;
+    font-size: 1.2rem;
+    color: #6c757d;
+    background-color: #d3d3d3;
+}
+
+.modal-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+#modal-amenities {
+    display: inline-block;
+    max-width: 100%;
+    word-wrap: break-word;
 }
