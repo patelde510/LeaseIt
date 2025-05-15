@@ -19,9 +19,9 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT || 5432,
   // COMMENT OUT THE PART BELOW WHEN USING A LOCAL DATABASE
-  ssl: {
-   rejectUnauthorized: false
-  }
+  // ssl: {
+  //  rejectUnauthorized: false
+  // }
 });
 
 
@@ -185,8 +185,7 @@ app.post("/post-lease", verifySession, upload.array("images", 10), async (req, r
 
     const leaseResult = await pool.query(`
       INSERT INTO leases (user_id, title, description, price, start_date, end_date, 
-          property_type, shared_space, furnished, bathroom_type, bedrooms, bathrooms, phone, email
-          status)
+          property_type, shared_space, furnished, bathroom_type, bedrooms, bathrooms, phone, email, status)
       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, 'available')
       RETURNING lease_id
     `, [user_id, title, description, price, start_date, end_date, property_type,
