@@ -16,77 +16,73 @@ async function fetchAllLeases() {
     const isLoggedIn = await checkLoginStatus();
     renderLeases(leases, resultsContainer, isLoggedIn);
 
-    setTimeout(() => {
-        document.querySelectorAll(".view-btn").forEach((btn, i) => {
-            btn.addEventListener("click", () => {
-                const lease = leases[i]; // get correct lease object
+    document.querySelectorAll(".view-btn").forEach((btn, i) => {
+        btn.addEventListener("click", () => {
+            const lease = leases[i]; // get correct lease object
 
-                // Fill modal fields
-                document.getElementById("modal-title").textContent = lease.title;
-                document.getElementById("modal-address").textContent = `${lease.street}, ${lease.city}, ${lease.state} ${lease.zip_code}`;
-                document.getElementById("modal-duration").textContent = lease.lease_duration;
-                document.getElementById("modal-price").textContent = lease.price;
-                document.getElementById("modal-bedrooms").textContent = lease.bedrooms;
-                document.getElementById("modal-bathrooms").textContent = lease.bathrooms;
-                document.getElementById("modal-property-type").textContent = lease.property_type;
-                document.getElementById("modal-shared-space").textContent = lease.shared_space ? "Yes" : "No";
-                document.getElementById("modal-furnished").textContent = lease.furnished ? "Yes" : "No";
-                document.getElementById("modal-bathroom-type").textContent = lease.bathroom_type;
-                document.getElementById("modal-amenities").textContent = lease.amenities.join(", ");
-                document.getElementById("modal-email-link").textContent = lease.email;
-                document.getElementById("modal-email-button").href = `mailto:${lease.email}`;
+            // Fill modal fields
+            document.getElementById("modal-title").textContent = lease.title;
+            document.getElementById("modal-address").textContent = `${lease.street}, ${lease.city}, ${lease.state} ${lease.zip_code}`;
+            document.getElementById("modal-duration").textContent = lease.lease_duration;
+            document.getElementById("modal-price").textContent = lease.price;
+            document.getElementById("modal-bedrooms").textContent = lease.bedrooms;
+            document.getElementById("modal-bathrooms").textContent = lease.bathrooms;
+            document.getElementById("modal-property-type").textContent = lease.property_type;
+            document.getElementById("modal-shared-space").textContent = lease.shared_space ? "Yes" : "No";
+            document.getElementById("modal-furnished").textContent = lease.furnished ? "Yes" : "No";
+            document.getElementById("modal-bathroom-type").textContent = lease.bathroom_type;
+            document.getElementById("modal-amenities").textContent = lease.amenities.join(", ");
+            document.getElementById("modal-email-link").textContent = lease.email;
+            document.getElementById("modal-email-button").href = `mailto:${lease.email}`;
 
 
-                // Set image preview and thumbnails
-                const mainImg = document.getElementById("main-preview-image");
-                const thumbContainer = document.getElementById("thumbnail-gallery");
-                const mainCol = document.getElementById("main-preview-column");
+            // Set image preview and thumbnails
+            const mainImg = document.getElementById("main-preview-image");
+            const thumbContainer = document.getElementById("thumbnail-gallery");
+            const mainCol = document.getElementById("main-preview-column");
 
-                thumbContainer.innerHTML = "";
-                mainCol.className = "col-lg-9 col-md-8 col-12"; // reset default width
+            thumbContainer.innerHTML = "";
+            mainCol.className = "col-lg-9 col-md-8 col-12"; // reset default width
 
-                const validImages = (lease.images || []).filter(img => img && img.trim() !== "");
+            const validImages = (lease.images || []).filter(img => img && img.trim() !== "");
 
-                if (validImages.length > 0) {
-                    mainImg.src = validImages[0];
-                    mainImg.alt = "Preview Image";
+            if (validImages.length > 0) {
+                mainImg.src = validImages[0];
+                mainImg.alt = "Preview Image";
 
-                    thumbContainer.style.display = "flex";
-                    mainCol.className = "col-lg-9 col-md-8 col-12";
+                thumbContainer.style.display = "flex";
+                mainCol.className = "col-lg-9 col-md-8 col-12";
 
-                    validImages.forEach((imgUrl, idx) => {
-                        const thumb = document.createElement("img");
-                        thumb.src = imgUrl;
-                        if (idx === 0) thumb.classList.add("active-thumb");
+                validImages.forEach((imgUrl, idx) => {
+                    const thumb = document.createElement("img");
+                    thumb.src = imgUrl;
+                    if (idx === 0) thumb.classList.add("active-thumb");
 
-                        thumb.addEventListener("click", () => {
-                            mainImg.src = imgUrl;
-                            document.querySelectorAll("#thumbnail-gallery img").forEach(img => img.classList.remove("active-thumb"));
-                            thumb.classList.add("active-thumb");
-                        });
-
-                        thumbContainer.appendChild(thumb);
+                    thumb.addEventListener("click", () => {
+                        mainImg.src = imgUrl;
+                        document.querySelectorAll("#thumbnail-gallery img").forEach(img => img.classList.remove("active-thumb"));
+                        thumb.classList.add("active-thumb");
                     });
-                } else {
-                    mainImg.src = "images/no-image.png";
-                    mainImg.alt = "No Image Available";
 
-                    // Hide the thumbnails and expand main image column
-                    thumbContainer.style.display = "none";
-                    mainCol.className = "col-12";
-                }
+                    thumbContainer.appendChild(thumb);
+                });
+            } else {
+                mainImg.src = "images/no-image.png";
+                mainImg.alt = "No Image Available";
 
-                const modal = new bootstrap.Modal(document.getElementById("listingModal"));
-                modal.show();
-            });
+                // Hide the thumbnails and expand main image column
+                thumbContainer.style.display = "none";
+                mainCol.className = "col-12";
+            }
+
+            const modalElement = document.getElementById("listingModal");
+            const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+            modal.show()
         });
-    }, 0);
+    });
+
 
 }
-
-document.getElementById("listingModal").addEventListener("hidden.bs.modal", function () {
-    document.body.classList.remove("modal-open");
-});
 
 async function renderLeases(leases, container, isLoggedIn) {
     leases.forEach((lease, index) => {
@@ -159,6 +155,78 @@ async function renderLeases(leases, container, isLoggedIn) {
 
         container.appendChild(leaseCard);
     });
+
+    document.querySelectorAll(".view-btn").forEach((btn, i) => {
+        btn.addEventListener("click", () => {
+            const lease = leases[i]; // get correct lease object
+
+            // Fill modal fields
+            document.getElementById("modal-title").textContent = lease.title;
+            document.getElementById("modal-address").textContent = `${lease.street}, ${lease.city}, ${lease.state} ${lease.zip_code}`;
+            document.getElementById("modal-duration").textContent = lease.lease_duration;
+            document.getElementById("modal-price").textContent = lease.price;
+            document.getElementById("modal-bedrooms").textContent = lease.bedrooms;
+            document.getElementById("modal-bathrooms").textContent = lease.bathrooms;
+            document.getElementById("modal-property-type").textContent = lease.property_type;
+            document.getElementById("modal-shared-space").textContent = lease.shared_space ? "Yes" : "No";
+            document.getElementById("modal-furnished").textContent = lease.furnished ? "Yes" : "No";
+            document.getElementById("modal-bathroom-type").textContent = lease.bathroom_type;
+            document.getElementById("modal-amenities").textContent = lease.amenities.join(", ");
+            document.getElementById("modal-email-link").textContent = lease.email;
+            document.getElementById("modal-email-button").href = `mailto:${lease.email}`;
+
+            const descElem = document.getElementById("modal-description-text");
+            if (lease.description && lease.description.trim() !== "") {
+                descElem.textContent = lease.description;
+            } else {
+                descElem.innerHTML = `<span class="fst-italic text-muted">No description provided.</span>`;
+            }
+
+            // Set image preview and thumbnails
+            const mainImg = document.getElementById("main-preview-image");
+            const thumbContainer = document.getElementById("thumbnail-gallery");
+            const mainCol = document.getElementById("main-preview-column");
+
+            thumbContainer.innerHTML = "";
+            mainCol.className = "col-lg-9 col-md-8 col-12"; // reset default width
+
+            const validImages = (lease.images || []).filter(img => img && img.trim() !== "");
+
+            if (validImages.length > 0) {
+                mainImg.src = validImages[0];
+                mainImg.alt = "Preview Image";
+
+                thumbContainer.style.display = "flex";
+                mainCol.className = "col-lg-9 col-md-8 col-12";
+
+                validImages.forEach((imgUrl, idx) => {
+                    const thumb = document.createElement("img");
+                    thumb.src = imgUrl;
+                    if (idx === 0) thumb.classList.add("active-thumb");
+
+                    thumb.addEventListener("click", () => {
+                        mainImg.src = imgUrl;
+                        document.querySelectorAll("#thumbnail-gallery img").forEach(img => img.classList.remove("active-thumb"));
+                        thumb.classList.add("active-thumb");
+                    });
+
+                    thumbContainer.appendChild(thumb);
+                });
+            } else {
+                mainImg.src = "images/no-image.png";
+                mainImg.alt = "No Image Available";
+
+                // Hide the thumbnails and expand main image column
+                thumbContainer.style.display = "none";
+                mainCol.className = "col-12";
+            }
+
+            const modal = new bootstrap.Modal(document.getElementById("listingModal"));
+            modal.show();
+        });
+    });
+
+
     if (container.id === "search-results") {
         initializeMap(leases);
     }
@@ -346,7 +414,6 @@ function initializeMap(filteredLeases) {
     map.markers = markers;
 
     const geocoder = new google.maps.Geocoder();
-
     filteredLeases.forEach(lease => {
         if (lease.latitude && lease.longitude) {
             // If latitude and longitude are already available, use them
@@ -366,8 +433,8 @@ function initializeMap(filteredLeases) {
     });
 
     // Adjust the map to fit all markers
-    if (leases.length > 0) {
-        if (leases.length === 1) {
+    if (filteredLeases.length > 0) {
+        if (filteredLeases.length === 1) {
             // Set a default zoom level when only one result is shown
             map.setCenter(bounds.getCenter());
             map.setZoom(1); // Adjust this zoom level as needed
