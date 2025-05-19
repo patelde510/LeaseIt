@@ -12,7 +12,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     async function checkSession() {
         try {
-            const response = await fetch("/checkSession");
+            const response = await fetch("/checkSession", { credentials: "include" });
             if (response.ok) {
                 const username = await response.text();
                 document.getElementById("auth-link").innerHTML = `

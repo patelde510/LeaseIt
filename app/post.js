@@ -97,6 +97,22 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
             event.preventDefault();
 
+            // Check if user is logged in (replace with your actual logic)
+            const response = await fetch("/checkSession", { credentials: "include" });
+            if (!response.ok) {
+                alert("You must log in to post");
+                return;
+            }
+
+            // Check image file sizes (example: 5MB limit per file)
+            const maxFileSize = 5 * 1024 * 1024; // 5MB
+            for (let file of imageFiles) {
+                if (file.size > maxFileSize) {
+                    alert("The file is too large");
+                    return;
+                }
+            }
+
             const amenities = Array.from(document.querySelectorAll("input[type='checkbox']:checked")).map(cb => cb.id);
 
             const leaseData = {
@@ -139,12 +155,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     window.location.href = "index.html";
                 }
             } catch (error) {
-                console.error("Error posting lease:", error);
-                alert("An error occurred while posting the lease. Check console for details.");
+                alert("An error occurred while posting the lease.");
             }
         }
     });
-    
+
     const imageUploadInput = document.getElementById("image-upload");
     const customUploadButton = document.getElementById("custom-upload-button");
     const dropArea = document.getElementById("drop-area");
