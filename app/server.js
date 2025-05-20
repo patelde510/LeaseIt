@@ -19,9 +19,9 @@ const pool = new Pool({
   password: process.env.DB_PASSWORD,
   port: process.env.DB_PORT || 5432,
   // COMMENT OUT THE PART BELOW WHEN USING A LOCAL DATABASE
-  ssl: {
-   rejectUnauthorized: false
-  }
+  // ssl: {
+  //  rejectUnauthorized: false
+  // }
 });
 
 
@@ -242,7 +242,7 @@ app.post("/search-leases", async (req, res) => {
     } = req.body;
 
     let query = `
-      SELECT l.lease_id, l.title, l.description, l.price, l.bedrooms, l.bathrooms, l.shared_space, l.furnished, l.bathroom_type, l.email,
+      SELECT l.lease_id, l.title, l.description, l.price, l.bedrooms, l.bathrooms, l.shared_space, l.furnished, l.bathroom_type, l.email, l.property_type,
              a.street, a.city, a.state, a.zip_code,
              TO_CHAR(l.start_date, 'Month YYYY') || ' to ' || TO_CHAR(l.end_date, 'Month YYYY') AS lease_duration,
              ARRAY_AGG(DISTINCT li.image_url) FILTER (WHERE li.image_url IS NOT NULL) AS images,
@@ -253,6 +253,7 @@ app.post("/search-leases", async (req, res) => {
       LEFT JOIN amenities am ON l.lease_id = am.lease_id
       WHERE 1=1 
     `;
+    query += ` AND l.status = 'available' `;
 
     let values = [];
     let counter = 1;
@@ -398,6 +399,7 @@ app.get("/all-leases", async (req, res) => {
       JOIN addresses a ON l.lease_id = a.lease_id
       LEFT JOIN lease_images li ON l.lease_id = li.lease_id
       LEFT JOIN amenities am ON l.lease_id = am.lease_id
+      WHERE l.status = 'available'
       GROUP BY 
         l.lease_id, l.title, l.price, l.bedrooms, l.bathrooms,
         l.property_type, l.shared_space, l.furnished, l.bathroom_type, l.email,
@@ -474,7 +476,7 @@ app.get("/api/favorites", verifySession, async (req, res) => {
   const user_id = req.user.user_id;
 
   try {
-    const result = await pool.query(`
+    let result = await pool.query(`
       SELECT l.lease_id, l.title, l.price, l.bedrooms, l.bathrooms,
              a.street, a.city, a.state, a.zip_code,
              TO_CHAR(l.start_date, 'Month<ctrl3348>') || ' to ' || TO_CHAR(l.end_date, 'Month<ctrl3348>') AS lease_duration,
@@ -486,6 +488,7 @@ app.get("/api/favorites", verifySession, async (req, res) => {
       LEFT JOIN lease_images li ON l.lease_id = li.lease_id
       LEFT JOIN amenities am ON l.lease_id = am.lease_id
       WHERE f.user_id = $1
+      AND l.status = 'available'
       GROUP BY l.lease_id, l.title, l.price, l.bedrooms, l.bathrooms,
                a.street, a.city, a.state, a.zip_code, lease_duration
       ORDER BY l.price ASC;
@@ -1002,6 +1005,69 @@ app.get("/suggest-addresses", async (req, res) => {
   } catch (err) {
     console.error("Error suggesting addresses:", err);
     res.status(500).json({ error: "Suggestion fetch failed" });
+  }
+});
+
+app.get('/my-listings.js', (req, res) => {
+  res.sendFile(path.join(__dirname, 'my-listings.js'));
+});
+
+app.get('/my-listings', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'my-listings.html'));
+});
+
+// Endpoint to get the logged-in user's listings
+app.get("/api/my-listings", verifySession, async (req, res) => {
+    const user_id = req.user.user_id;
+
+    try {
+        const result = await pool.query(`
+            SELECT l.lease_id, l.title, l.price,
+                   TO_CHAR(l.start_date, 'Month YYYY') AS start_date,
+                   TO_CHAR(l.end_date, 'Month YYYY') AS end_date,
+                   l.status, a.street, a.city, a.state, a.zip_code
+            FROM leases l
+            JOIN addresses a ON l.lease_id = a.lease_id
+            WHERE l.user_id = $1
+            ORDER BY l.start_date DESC;
+        `, [user_id]);
+        res.json(result.rows);
+    } catch (error) {
+        console.error("Error fetching user's listings:", error);
+        res.status(500).json({ error: "Failed to fetch your listings." });
+    }
+  
+});
+
+// API endpoint to remove a user's listing
+app.delete("/api/my-listings/:lease_id/remove", verifySession, async (req, res) => {
+  const { lease_id } = req.params;
+  const user_id = req.user.user_id;
+
+  try {
+      // Verify that the listing belongs to the logged-in user
+      const checkOwnership = await pool.query(
+          "SELECT lease_id FROM leases WHERE lease_id = $1 AND user_id = $2",
+          [lease_id, user_id]
+      );
+
+      if (checkOwnership.rows.length === 0) {
+          return res.status(403).json({ error: "You do not have permission to remove this listing." });
+      }
+
+      const result = await pool.query(
+          "UPDATE leases SET status = 'removed' WHERE lease_id = $1",
+          [lease_id]
+      );
+
+      if (result.rowCount > 0) {
+          res.json({ message: "Listing removed successfully." });
+      } else {
+          res.status(404).json({ message: "Listing not found." });
+      }
+  } catch (error) {
+      console.error("Error removing listing:", error);
+      res.status(500).json({ error: "Failed to remove the listing." });
   }
 });
 
